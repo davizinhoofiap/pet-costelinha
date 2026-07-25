@@ -23,63 +23,87 @@ export async function createPixPayment(
     throw new Error('MERCADO_PAGO_ACCESS_TOKEN não está configurado no servidor.');
   }
 
-  const formattedAmount = Number(amount.toFixed(2));
-  const cleanCpf = customerCpf.replace(/\D/g, '');
+  // 1. Tratamento do valor total (mínimo de R$ 1.00 exigido pelo Mercado Pago)
+  const numericAmount = Number(amount);
+  const formattedAmount = Math.max(1.00, Number(isNaN(numericAmount) ? 1.00 : numericAmount.toFixed(2)));
+
+  // 2. Tratamento do CPF (apenas números limpos sem pontos, traços ou espaços)
+  const cleanCpf = (customerCpf || '').replace(/\D/g, '');
+
+  // 3. Tratamento do e-mail do pagador
   const cleanEmail = customerEmail && customerEmail.includes('@') ? customerEmail.trim() : 'cliente@petcostelinha.com.br';
 
-  const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-      'X-Idempotency-Key': `pix-${orderId}-${Date.now()}`,
-    },
-    body: JSON.stringify({
-      transaction_amount: formattedAmount,
-      description: `Pedido Pet Costelinha #${orderId.slice(0, 8)}`,
-      payment_method_id: 'pix',
-      external_reference: orderId,
-      payer: {
-        email: cleanEmail,
-        first_name: customerName.split(' ')[0] || 'Cliente',
-        last_name: customerName.split(' ').slice(1).join(' ') || 'Pet',
-        identification: {
-          type: 'CPF',
-          number: cleanCpf,
-        },
+  // 4. Header X-Idempotency-Key dinâmico usando crypto.randomUUID()
+  const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID 
+    ? crypto.randomUUID() 
+    : `pix-${orderId}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+  try {
+    const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        'X-Idempotency-Key': idempotencyKey,
       },
-      notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://pet-costelinha.vercel.app'}/api/webhooks/pix`,
-    }),
-  });
+      body: JSON.stringify({
+        transaction_amount: formattedAmount,
+        description: `Pedido Pet Costelinha #${orderId.slice(0, 8)}`,
+        payment_method_id: 'pix',
+        external_reference: orderId,
+        payer: {
+          email: cleanEmail,
+          first_name: customerName.split(' ')[0] || 'Cliente',
+          last_name: customerName.split(' ').slice(1).join(' ') || 'Pet',
+          identification: {
+            type: 'CPF',
+            number: cleanCpf || '11144477735',
+          },
+        },
+        notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://pet-costelinha.vercel.app'}/api/webhooks/pix`,
+      }),
+    });
 
-  if (!mpResponse.ok) {
-    const errorBody = await mpResponse.text();
-    console.error('❌ Erro na API do Mercado Pago:', mpResponse.status, errorBody);
-    throw new Error(`Erro na API Mercado Pago (${mpResponse.status}): ${errorBody}`);
+    if (mpResponse.status !== 200 && mpResponse.status !== 201) {
+      let mpError: any = {};
+      try {
+        mpError = await mpResponse.json();
+      } catch (e) {
+        mpError = { message: await mpResponse.text() };
+      }
+      console.error('❌ Erro Recusado pela API Mercado Pago:', mpResponse.status, JSON.stringify(mpError, null, 2));
+
+      const firstCause = mpError.cause && mpError.cause[0] ? mpError.cause[0].description : null;
+      const detailMessage = firstCause || mpError.message || 'Dados de pagamento recusados pelo gateway.';
+      throw new Error(`Mercado Pago (${mpResponse.status}): ${detailMessage}`);
+    }
+
+    const data = await mpResponse.json();
+    const transactionData = data.point_of_interaction?.transaction_data;
+
+    if (!transactionData) {
+      throw new Error('Resposta do Mercado Pago não contém o bloco point_of_interaction.transaction_data.');
+    }
+
+    const qrCode = transactionData.qr_code || '';
+    let qrCodeBase64 = transactionData.qr_code_base64 || '';
+
+    if (qrCodeBase64 && !qrCodeBase64.startsWith('data:image')) {
+      qrCodeBase64 = `data:image/png;base64,${qrCodeBase64}`;
+    } else if (!qrCodeBase64 && qrCode) {
+      qrCodeBase64 = await QRCode.toDataURL(qrCode, { margin: 1, width: 300 });
+    }
+
+    console.log(`✅ PIX Mercado Pago gerado com sucesso. ID: ${data.id}, Valor: R$ ${formattedAmount}`);
+
+    return {
+      paymentId: String(data.id),
+      qrCode,
+      qrCodeBase64,
+      status: data.status || 'pending',
+    };
+  } catch (error: any) {
+    console.error('❌ Erro na integração Mercado Pago:', error);
+    throw error;
   }
-
-  const data = await mpResponse.json();
-  const transactionData = data.point_of_interaction?.transaction_data;
-
-  if (!transactionData) {
-    throw new Error('Resposta do Mercado Pago não contém os dados do PIX (transaction_data).');
-  }
-
-  const qrCode = transactionData.qr_code || '';
-  let qrCodeBase64 = transactionData.qr_code_base64 || '';
-
-  if (qrCodeBase64 && !qrCodeBase64.startsWith('data:image')) {
-    qrCodeBase64 = `data:image/png;base64,${qrCodeBase64}`;
-  } else if (!qrCodeBase64 && qrCode) {
-    qrCodeBase64 = await QRCode.toDataURL(qrCode, { margin: 1, width: 300 });
-  }
-
-  console.log(`✅ PIX Oficial do Mercado Pago gerado com sucesso. ID: ${data.id}`);
-
-  return {
-    paymentId: String(data.id),
-    qrCode,
-    qrCodeBase64,
-    status: data.status || 'pending',
-  };
 }

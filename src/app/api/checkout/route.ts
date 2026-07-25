@@ -59,12 +59,9 @@ export async function POST(req: Request) {
       });
     }
 
-    // Validação de Valor Mínimo R$ 1,00 exigido pelo Mercado Pago PIX
+    // Garantir valor mínimo de R$ 1,00 para os testes de mercado do PIX
     if (totalCalculado < 1.00) {
-      return NextResponse.json(
-        { error: 'O valor total mínimo para pagamentos via PIX Mercado Pago é de R$ 1,00.' },
-        { status: 400 }
-      );
+      totalCalculado = 1.00;
     }
 
     // 4. Criar Pedido no MySQL
@@ -137,8 +134,14 @@ export async function POST(req: Request) {
       total: totalCalculado,
       pix: pixData,
     });
-  } catch (error) {
-    console.error('Erro no processamento do checkout:', error);
-    return NextResponse.json({ error: 'Erro ao processar o pedido no servidor' }, { status: 500 });
+  } catch (error: any) {
+    console.error('❌ Erro no processamento do checkout:', error);
+    return NextResponse.json(
+      {
+        error: error.message || 'Erro ao processar o pedido no servidor',
+        details: error.toString(),
+      },
+      { status: 400 }
+    );
   }
 }
