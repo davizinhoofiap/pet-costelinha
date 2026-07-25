@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Star, ShoppingBag, Check, Eye, Sparkles } from 'lucide-react';
+import { Star, ShoppingBag, Check, Sparkles } from 'lucide-react';
 import { formatCurrency } from '@/lib/masks';
 
 export interface ProductType {
@@ -56,7 +56,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
       </div>
 
-      {/* Container da Foto Padronizado sem corte de imagem */}
+      {/* Container da Foto Limpo e Padronizado (Sem Olho no Hover) */}
       <div className="relative h-52 sm:h-56 w-full bg-slate-50/70 p-4 flex items-center justify-center overflow-hidden">
         <img
           src={product.imagem_url}
@@ -64,13 +64,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           className="max-h-full max-w-full object-contain p-1 group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
         />
-
-        {/* Hover Overlay com Botão Ver Detalhes */}
-        <div className="absolute inset-0 bg-slate-900/15 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-          <span className="bg-white text-slate-900 text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-all">
-            <Eye className="w-4 h-4 text-orange-600 stroke-[2]" /> Ver Especificações
-          </span>
-        </div>
       </div>
 
       {/* Conteúdo Informativo Espaçoso */}
