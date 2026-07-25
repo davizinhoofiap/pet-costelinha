@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Rações Magnus, Special Dog, areias higiênicas, tapetes, gaiolas de madeira, petiscos e medicamentos com tele-entrega expressa.',
   keywords: ['Petshop', 'Pet Costelinha', 'Rações', 'Medicamentos Pets', 'Areia Higiênica', 'Gaiolas', 'Tele-Entrega'],
   verification: {
-    google: 'google617417738e354d84',
+    google: 'asNcd7ayg1Scs9F2gYvZjsX_xEY7Vyk-uScRwtg6-Yc',
   },
 };
 
@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        <meta name="google-site-verification" content="google617417738e354d84" />
+        <meta name="google-site-verification" content="asNcd7ayg1Scs9F2gYvZjsX_xEY7Vyk-uScRwtg6-Yc" />
       </head>
       <body className="antialiased bg-slate-50 text-slate-900 min-h-screen">
         {children}
