@@ -41,17 +41,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const [copiedPix, setCopiedPix] = useState(false);
 
-  // Polling automático para verificar a confirmação do pagamento via Webhook
+  // Polling automático (a cada 3s) para verificar confirmação de pagamento no MySQL via Webhook
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
     if (step === 'PIX_SCREEN' && orderResult?.orderId) {
       intervalId = setInterval(async () => {
         try {
-          const res = await fetch(`/api/checkout/status?orderId=${orderResult.orderId}`);
+          const res = await fetch(`/api/orders/${orderResult.orderId}`);
           if (res.ok) {
             const data = await res.json();
-            if (data.status === 'PAID') {
+            const currentStatus = (data.status || '').toUpperCase();
+            if (currentStatus === 'PAID' || currentStatus === 'APPROVED') {
               clearInterval(intervalId);
               setStep('SUCCESS');
               onClearCart();
@@ -61,7 +62,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         } catch (err) {
           console.error('Erro no polling de verificação do PIX:', err);
         }
-      }, 3500);
+      }, 3000);
     }
 
     return () => {
@@ -352,7 +353,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </form>
           )}
 
-          {/* STEP 2: PIX SCREEN (100% Automático via Webhook + Polling) */}
+          {/* STEP 2: PIX SCREEN (100% Automático via Webhook + Polling 3s) */}
           {step === 'PIX_SCREEN' && orderResult?.pix && (
             <div className="space-y-5 text-center">
               <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-left flex justify-between items-center text-xs">
@@ -414,12 +415,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
               <div className="text-[11px] text-slate-400 font-mono flex items-center justify-center gap-1.5 pt-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-500 stroke-[1.5]" />
-                Verificando confirmação do banco em tempo real...
+                Verificando confirmação do banco em tempo real (Polling 3s)...
               </div>
             </div>
           )}
 
-          {/* STEP 3: SUCCESS (Confirmação Automática + Botão de Envio WhatsApp) */}
+          {/* STEP 3: SUCCESS (Confirmação Automática) */}
           {step === 'SUCCESS' && (
             <div className="text-center py-6 space-y-5">
               <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full mx-auto flex items-center justify-center shadow-xs">

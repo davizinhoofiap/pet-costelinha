@@ -1,10 +1,18 @@
-import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 async function processPaymentNotification(paymentId: string) {
-  const token = process.env.MERCADO_PAGO_ACCESS_TOKEN;
-  if (!token || token.startsWith('APP_USR-0000000000000000')) {
-    return { success: false, reason: 'Token do Mercado Pago não configurado.' };
+  const rawToken = 
+    process.env.MERCADO_PAGO_ACCESS_TOKEN || 
+    process.env.NEXT_PUBLIC_MERCADO_PAGO_ACCESS_TOKEN || 
+    'APP_USR-6903860235338291-072514-c174c19118dd2289d79b7030f5d9d007-1353511502';
+
+  const token = rawToken ? rawToken.trim().replace(/^["']|["']$/g, '') : '';
+
+  if (!token) {
+    console.error('❌ Webhook Mercado Pago: Token não configurado.');
+    return;
   }
 
   try {
@@ -16,23 +24,23 @@ async function processPaymentNotification(paymentId: string) {
     });
 
     if (!mpRes.ok) {
-      console.error(`❌ Erro ao consultar pagamento Mercado Pago ID ${paymentId}:`, mpRes.status);
-      return { success: false, reason: 'Pagamento não encontrado na API do Mercado Pago' };
+      console.error(`❌ Erro ao consultar pagamento Mercado Pago ID ${paymentId}: status ${mpRes.status}`);
+      return;
     }
 
     const mpData = await mpRes.json();
-    const paymentStatus = mpData.status; // 'approved', 'pending', 'cancelled', etc.
+    const paymentStatus = mpData.status; // 'approved', 'pending', etc.
     const externalReference = mpData.external_reference;
 
-    console.log(`🔔 Webhook Mercado Pago: Pagamento ${paymentId} - Status: ${paymentStatus}`);
+    console.log(`🔔 Webhook Mercado Pago: Notificação de Pagamento ${paymentId} - Status: ${paymentStatus}`);
 
     if (paymentStatus === 'approved') {
-      // 2. Buscar o pedido correspondente por gateway_payment_id ou external_reference
+      // 2. Buscar o pedido correspondente por external_reference ou gateway_payment_id
       let order = await prisma.order.findFirst({
         where: {
           OR: [
-            { gateway_payment_id: String(paymentId) },
             ...(externalReference ? [{ id: externalReference }] : []),
+            { gateway_payment_id: String(paymentId) },
           ],
         },
       });
@@ -42,17 +50,13 @@ async function processPaymentNotification(paymentId: string) {
           where: { id: order.id },
           data: { status: 'PAID' },
         });
-        console.log(`✅ Pedido #${order.id} atualizado para PAGO via Webhook Mercado Pago!`);
-        return { success: true, message: `Pedido ${order.id} marcado como PAGO.`, orderId: order.id };
+        console.log(`✅ SUCESSO WEBHOOK: Pedido #${order.id} marcado como PAGO no banco MySQL!`);
       } else {
-        console.warn(`⚠️ Nenhum pedido encontrado no banco MySQL para a transação ${paymentId}`);
+        console.warn(`⚠️ Webhook: Nenhum pedido encontrado para a transação Mercado Pago ID ${paymentId}`);
       }
     }
-
-    return { success: true, status: paymentStatus };
   } catch (err) {
     console.error('❌ Erro no processamento da notificação Mercado Pago:', err);
-    return { success: false, error: String(err) };
   }
 }
 
@@ -65,22 +69,22 @@ export async function POST(req: Request) {
     const directOrderId = body.orderId;
 
     if (directOrderId) {
-      const order = await prisma.order.update({
+      await prisma.order.update({
         where: { id: directOrderId },
         data: { status: 'PAID' },
-      });
-      return NextResponse.json({ success: true, message: `Pedido ${directOrderId} marcado como PAGO.`, order });
+      }).catch(() => {});
+      return new Response("OK", { status: 200 });
     }
 
     if (paymentId) {
-      const result = await processPaymentNotification(String(paymentId));
-      return NextResponse.json(result);
+      await processPaymentNotification(String(paymentId));
     }
 
-    return NextResponse.json({ message: 'Notificação recebida com sucesso' });
+    // Sempre retornar status HTTP 200 para confirmação da notificação do Mercado Pago
+    return new Response("OK", { status: 200 });
   } catch (error) {
-    console.error('Erro no webhook PIX:', error);
-    return NextResponse.json({ error: 'Erro interno ao processar webhook' }, { status: 500 });
+    console.error('Erro no handler POST do webhook:', error);
+    return new Response("OK", { status: 200 });
   }
 }
 
@@ -89,9 +93,8 @@ export async function GET(req: Request) {
   const paymentId = searchParams.get('id') || searchParams.get('data.id');
 
   if (paymentId) {
-    const result = await processPaymentNotification(String(paymentId));
-    return NextResponse.json(result);
+    await processPaymentNotification(String(paymentId));
   }
 
-  return NextResponse.json({ message: 'Webhook GET endpoint ativo' });
+  return new Response("OK", { status: 200 });
 }
