@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Check, QrCode, Copy, MessageSquare, RefreshCw, CheckCircle2, ShieldCheck, PhoneCall } from 'lucide-react';
+import { X, Check, QrCode, Copy, MessageSquare, RefreshCw, CheckCircle2, ShieldCheck, PhoneCall, MapPin, ShoppingBag } from 'lucide-react';
 import { CartItem } from './CartDrawer';
 import { validateCPF } from '@/lib/cpf';
 import { maskCPF, maskPhone, formatCurrency } from '@/lib/masks';
@@ -33,15 +33,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [cpfError, setCpfError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Armazena dados reais do pedido pós-checkout
   const [orderResult, setOrderResult] = useState<{
     orderId: string;
     total: number;
+    items?: CartItem[];
     pix?: { qrCode: string; qrCodeBase64: string; paymentId: string };
   } | null>(null);
 
   const [copiedPix, setCopiedPix] = useState(false);
 
-  // Polling automático (a cada 3s) para verificar confirmação de pagamento no MySQL via Webhook
+  // Polling automático (a cada 3s) para verificar confirmação de pagamento via Webhook
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
@@ -133,7 +135,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         throw new Error(data.error || 'Erro ao processar o checkout.');
       }
 
-      setOrderResult(data);
+      // Salva snapshot dos itens comprados antes de limpar o carrinho
+      setOrderResult({
+        ...data,
+        items: [...cart],
+      });
 
       if (paymentMethod === 'PIX') {
         setStep('PIX_SCREEN');
@@ -161,15 +167,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   const handleOpenWhatsApp = (orderId?: string, isPaid: boolean = false) => {
-    const itemsList = cart.length > 0 
-      ? cart.map((i) => `• ${i.quantity}x ${i.product.nome}`).join('%0A')
-      : '• Itens do Pedido no Sistema';
+    const savedItems = orderResult?.items && orderResult.items.length > 0 ? orderResult.items : cart;
+    const itemsList = savedItems.length > 0 
+      ? savedItems.map((i) => `• ${i.quantity}x ${i.product.nome}`).join('%0A')
+      : '• Produtos Selecionados no Site';
       
     const finalOrderId = orderId || orderResult?.orderId || 'NOVO';
     const finalTotal = orderResult?.total || totalValor;
 
     const msg = isPaid
-      ? `*PEDIDO PAGO COM SUCESSO - PET COSTELINHA*%0A%0A*Pedido:* #${finalOrderId}%0A*Cliente:* ${nome}%0A*CPF:* ${cpf}%0A*Telefone:* ${telefone}%0A*Endereço:* ${endereco}%0A*Status:* ✅ PAGO VIA PIX (Mercado Pago)%0A%0A*Itens Comprados:*%0A${itemsList}%0A%0A*Total Pago:* ${formatCurrency(finalTotal)}%0A%0A_Olá! Realizei o pagamento do meu pedido no site via PIX Mercado Pago e gostaria de acompanhar a entrega!_`
+      ? `*PEDIDO PAGO COM SUCESSO - PET COSTELINHA*%0A%0A*Pedido:* #${finalOrderId}%0A*Cliente:* ${nome}%0A*CPF:* ${cpf}%0A*Telefone:* ${telefone}%0A*Endereço de Entrega:* ${endereco}%0A*Status:* ✅ PAGO VIA PIX (Mercado Pago)%0A%0A*Itens Comprados:*%0A${itemsList}%0A%0A*Total Pago:* ${formatCurrency(finalTotal)}%0A%0A_Olá! Realizei o pagamento do meu pedido no site via PIX Mercado Pago e gostaria de acompanhar a entrega!_`
       : `*SOLICITAÇÃO DE PEDIDO - PET COSTELINHA*%0A%0A*Pedido:* #${finalOrderId}%0A*Cliente:* ${nome}%0A*CPF:* ${cpf}%0A*Telefone:* ${telefone}%0A*Endereço:* ${endereco}%0A%0A*Itens:*%0A${itemsList}%0A%0A*Total:* ${formatCurrency(finalTotal)}`;
 
     window.open(`https://wa.me/551151971916?text=${msg}`, '_blank');
@@ -177,7 +184,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-xl rounded-2xl shadow-xl overflow-hidden border border-slate-200 relative my-6">
+      <div className="bg-white w-full max-w-xl rounded-2xl shadow-xl overflow-hidden border border-slate-200 relative my-6 font-sans">
         {/* Header */}
         <div className="bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-800">
           <div>
@@ -353,7 +360,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </form>
           )}
 
-          {/* STEP 2: PIX SCREEN (100% Automático via Webhook + Polling 3s) */}
+          {/* STEP 2: PIX SCREEN */}
           {step === 'PIX_SCREEN' && orderResult?.pix && (
             <div className="space-y-5 text-center">
               <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-left flex justify-between items-center text-xs">
@@ -420,9 +427,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
           )}
 
-          {/* STEP 3: SUCCESS (Confirmação Automática) */}
+          {/* STEP 3: SUCCESS (Exibe dados REAIS do Pedido + Botão de Envio WhatsApp) */}
           {step === 'SUCCESS' && (
-            <div className="text-center py-6 space-y-5">
+            <div className="text-center py-4 space-y-5">
               <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full mx-auto flex items-center justify-center shadow-xs">
                 <CheckCircle2 className="w-8 h-8 stroke-[2]" />
               </div>
@@ -430,18 +437,60 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-slate-900">Pagamento Confirmado com Sucesso!</h3>
                 <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
-                  Sua compra foi aprovada! O comprovante e a nota fiscal foram gravados no sistema.
+                  Sua compra foi aprovada e gravada no sistema! A nota fiscal foi enviada para <strong>{email}</strong>.
                 </p>
               </div>
 
-              {/* Botão de Notificação Direta no WhatsApp com todos os dados da compra */}
-              <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-3 max-w-md mx-auto">
+              {/* CARD DE RESUMO REAIS DO PEDIDO */}
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 text-left space-y-3">
+                <div className="flex justify-between items-center pb-2.5 border-b border-slate-200">
+                  <div>
+                    <span className="text-[10px] font-mono text-slate-500 uppercase">CÓDIGO DO PEDIDO</span>
+                    <p className="font-extrabold text-slate-900 text-xs">#{orderResult?.orderId ? orderResult.orderId.slice(0, 8) : '000000'}</p>
+                  </div>
+                  <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md">
+                    PAID / PAGO VIA PIX
+                  </span>
+                </div>
+
+                {/* Lista de Itens */}
+                <div className="space-y-1.5 text-xs">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Itens Comprados:</span>
+                  {(orderResult?.items || cart).map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-slate-700">
+                      <span className="truncate pr-2">• {item.quantity}x {item.product.nome}</span>
+                      <span className="font-semibold text-slate-900 shrink-0">
+                        {formatCurrency(Number(item.product.preco_venda) * item.quantity)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Endereço de Entrega */}
+                <div className="pt-2 border-t border-slate-200 space-y-1">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-orange-600 stroke-[1.5]" /> Endereço de Entrega:
+                  </span>
+                  <p className="text-xs text-slate-800 font-medium">{endereco}</p>
+                </div>
+
+                {/* Valor Total */}
+                <div className="pt-2 border-t border-slate-200 flex justify-between items-center">
+                  <span className="text-xs font-bold text-slate-700">Total Pago:</span>
+                  <span className="text-base font-black text-emerald-600">
+                    {formatCurrency(orderResult?.total || totalValor)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Botão de Envio WhatsApp com Resumo dos Dados Reais */}
+              <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-3">
                 <div className="text-left space-y-1">
                   <span className="text-[10px] font-mono font-bold text-emerald-800 uppercase block">
                     [ NOTIFICAÇÃO DA LOJA ]
                   </span>
                   <p className="text-xs text-emerald-950 font-medium">
-                    Quer avisar o Petshop no WhatsApp para agilizar a separação e entrega do seu pedido?
+                    Quer enviar o comprovante com todos os dados da compra no WhatsApp da loja?
                   </p>
                 </div>
 
@@ -451,7 +500,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-98"
                 >
                   <PhoneCall className="w-4 h-4 stroke-[1.5]" />
-                  Avisar Petshop no WhatsApp com Dados da Compra
+                  Enviar Comprovante pelo WhatsApp
                 </button>
               </div>
 
