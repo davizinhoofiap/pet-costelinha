@@ -12,7 +12,6 @@ import {
   PackageCheck, 
   Truck, 
   XCircle, 
-  Eye, 
   X, 
   User, 
   MapPin, 
@@ -266,7 +265,7 @@ export default function AdminOrdersPage() {
                             onClick={() => handleOpenDetails(order)}
                             className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0"
                           >
-                            <Eye className="w-4 h-4 stroke-[1.5]" /> Ficha do Pedido
+                            <FileText className="w-4 h-4 stroke-[1.5]" /> Ficha do Pedido
                           </button>
 
                           <select
