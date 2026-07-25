@@ -80,7 +80,7 @@ export default function AdminOrdersPage() {
           setSelectedOrder((prev: any) => ({ ...prev, status: newStatus }));
         }
 
-        showToast('Status atualizado com sucesso!');
+        showToast('Status da entrega atualizado com sucesso!');
       }
     } catch (err) {
       console.error(err);
@@ -98,38 +98,38 @@ export default function AdminOrdersPage() {
     switch (status) {
       case 'PAID':
         return (
-          <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-md text-xs font-bold">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 stroke-[1.5]" /> PAGO / AGUARDANDO PREPARAÇÃO
+          <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-lg text-xs font-black tracking-wide shadow-2xs">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 stroke-[2]" /> PAGO / AGUARDANDO PREPARAÇÃO
           </span>
         );
       case 'PROCESSING':
         return (
-          <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-0.5 rounded-md text-xs font-bold">
-            <PackageCheck className="w-3.5 h-3.5 text-blue-600 stroke-[1.5]" /> EM PREPARAÇÃO (ESTOQUE)
+          <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1 rounded-lg text-xs font-black tracking-wide shadow-2xs">
+            <PackageCheck className="w-4 h-4 text-blue-600 stroke-[2]" /> EM PREPARAÇÃO (ESTOQUE)
           </span>
         );
       case 'SHIPPED':
         return (
-          <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-800 border border-purple-200 px-2.5 py-0.5 rounded-md text-xs font-bold">
-            <Truck className="w-3.5 h-3.5 text-purple-600 stroke-[1.5]" /> ENVIADO / SAIU PARA ENTREGA
+          <span className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-800 border border-purple-200 px-3 py-1 rounded-lg text-xs font-black tracking-wide shadow-2xs">
+            <Truck className="w-4 h-4 text-purple-600 stroke-[2]" /> ENVIADO / SAIU PARA ENTREGA
           </span>
         );
       case 'DELIVERED':
         return (
-          <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-800 border border-slate-200 px-2.5 py-0.5 rounded-md text-xs font-bold">
-            <Truck className="w-3.5 h-3.5 text-slate-600 stroke-[1.5]" /> ENTREGUE AO CLIENTE
+          <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-900 border border-slate-300 px-3 py-1 rounded-lg text-xs font-black tracking-wide shadow-2xs">
+            <Truck className="w-4 h-4 text-slate-700 stroke-[2]" /> ENTREGUE AO CLIENTE
           </span>
         );
       case 'CANCELLED':
         return (
-          <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-0.5 rounded-md text-xs font-bold">
-            <XCircle className="w-3.5 h-3.5 text-rose-600 stroke-[1.5]" /> CANCELADO
+          <span className="inline-flex items-center gap-1.5 bg-rose-50 text-rose-800 border border-rose-200 px-3 py-1 rounded-lg text-xs font-black tracking-wide shadow-2xs">
+            <XCircle className="w-4 h-4 text-rose-600 stroke-[2]" /> CANCELADO
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded-md text-xs font-bold">
-            <Clock className="w-3.5 h-3.5 text-amber-600 stroke-[1.5]" /> AGUARDANDO PAGAMENTO
+          <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 rounded-lg text-xs font-black tracking-wide shadow-2xs">
+            <Clock className="w-4 h-4 text-amber-600 stroke-[2]" /> AGUARDANDO PAGAMENTO
           </span>
         );
     }
@@ -137,35 +137,35 @@ export default function AdminOrdersPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6 relative font-sans">
+      <div className="space-y-6 max-w-7xl mx-auto font-sans relative">
         {/* TOAST DE NOTIFICAÇÃO */}
         {toastMessage && (
-          <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2 animate-bounce">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 stroke-[2]" /> {toastMessage}
+          <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 text-xs font-bold flex items-center gap-2.5 animate-bounce">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 stroke-[2.5]" /> {toastMessage}
           </div>
         )}
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5 text-slate-700 stroke-[1.5]" /> Gestão e Expedição de Pedidos
+            <h1 className="text-xl font-black text-slate-900 flex items-center gap-2.5">
+              <ShoppingCart className="w-6 h-6 text-slate-800 stroke-[1.5]" /> Gestão e Expedição de Pedidos
             </h1>
-            <p className="text-xs text-slate-500">
-              Painel operacional para Gerente e Atendentes. Acompanhe do pagamento até a entrega.
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Painel operacional completo para Gerente e Atendentes. Acompanhe do pagamento até a entrega ao cliente.
             </p>
           </div>
 
           <button
             onClick={fetchOrders}
-            className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs"
+            className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-2xs cursor-pointer shrink-0"
           >
-            <RefreshCw className={`w-3.5 h-3.5 stroke-[1.5] ${loading ? 'animate-spin' : ''}`} /> Atualizar Tabela
+            <RefreshCw className={`w-4 h-4 stroke-[1.5] ${loading ? 'animate-spin' : ''}`} /> Atualizar Tabela
           </button>
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row items-center gap-4">
           <div className="relative flex-1 w-full">
             <input
               type="text"
@@ -173,19 +173,19 @@ export default function AdminOrdersPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchOrders()}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-medium"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 stroke-[1.5]" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 stroke-[1.5]" />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full md:w-auto">
             <Filter className="w-4 h-4 text-slate-400 stroke-[1.5]" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer"
+              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer w-full md:w-auto"
             >
-              <option value="ALL">Todos os Status</option>
+              <option value="ALL">Todos os Status ({orders.length})</option>
               <option value="PENDING">AGUARDANDO PAGAMENTO</option>
               <option value="PAID">PAGO / AGUARDANDO PREPARAÇÃO</option>
               <option value="PROCESSING">EM PREPARAÇÃO (ESTOQUE)</option>
@@ -196,18 +196,18 @@ export default function AdminOrdersPage() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        {/* Table Espaçosa e Ampla */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200/80">
+              <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200/80">
                 <tr>
-                  <th className="p-4">ID Pedido</th>
-                  <th className="p-4">Cliente & CPF</th>
-                  <th className="p-4">Itens Comprados</th>
-                  <th className="p-4">Total</th>
-                  <th className="p-4">Status da Entrega</th>
-                  <th className="p-4 text-right">Ações / Etapa</th>
+                  <th className="py-4.5 px-5 min-w-[140px]">ID Pedido</th>
+                  <th className="py-4.5 px-5 min-w-[200px]">Cliente & CPF</th>
+                  <th className="py-4.5 px-5 min-w-[240px]">Itens Comprados</th>
+                  <th className="py-4.5 px-5 min-w-[130px]">Total Pago</th>
+                  <th className="py-4.5 px-5 min-w-[240px]">Status da Entrega</th>
+                  <th className="py-4.5 px-5 text-right min-w-[260px]">Ações / Etapa</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -215,7 +215,7 @@ export default function AdminOrdersPage() {
                   [...Array(4)].map((_, i) => <TableRowSkeleton key={i} />)
                 ) : orders.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-500 font-medium">
+                    <td colSpan={6} className="p-12 text-center text-slate-500 font-medium">
                       Nenhum pedido localizado com os filtros aplicados.
                     </td>
                   </tr>
@@ -226,26 +226,26 @@ export default function AdminOrdersPage() {
                       onClick={() => handleOpenDetails(order)}
                       className="hover:bg-slate-50/80 transition-colors cursor-pointer"
                     >
-                      <td className="p-4 font-mono font-semibold text-slate-900">
+                      <td className="py-4.5 px-5 font-mono font-bold text-slate-900">
                         #{order.id.slice(0, 8)}
-                        <span className="block text-[10px] text-slate-400 font-sans font-normal">
+                        <span className="block text-[10px] text-slate-400 font-sans font-normal mt-0.5">
                           {new Date(order.created_at).toLocaleString('pt-BR')}
                         </span>
                       </td>
 
-                      <td className="p-4">
-                        <p className="font-semibold text-slate-900">{order.cliente_nome}</p>
-                        <p className="text-[11px] text-slate-500">CPF: {order.cliente_cpf}</p>
+                      <td className="py-4.5 px-5">
+                        <p className="font-bold text-slate-900 text-xs">{order.cliente_nome}</p>
+                        <p className="text-[11px] text-slate-500 font-medium">CPF: {order.cliente_cpf}</p>
                       </td>
 
-                      <td className="p-4">
-                        <div className="space-y-1 max-w-xs text-[11px]">
+                      <td className="py-4.5 px-5">
+                        <div className="space-y-1 max-w-xs text-xs">
                           {order.items?.map((item: any) => (
                             <div key={item.id} className="flex justify-between gap-2">
-                              <span className="truncate text-slate-700">
+                              <span className="truncate text-slate-700 font-medium">
                                 {item.quantidade}x {item.product?.nome || 'Produto'}
                               </span>
-                              <span className="font-semibold text-slate-900">
+                              <span className="font-bold text-slate-900 shrink-0">
                                 {formatCurrency(Number(item.preco_unitario) * item.quantidade)}
                               </span>
                             </div>
@@ -253,27 +253,27 @@ export default function AdminOrdersPage() {
                         </div>
                       </td>
 
-                      <td className="p-4 font-bold text-slate-900">
+                      <td className="py-4.5 px-5 font-mono font-black text-slate-900 text-sm">
                         {formatCurrency(Number(order.total_valor))}
                       </td>
 
-                      <td className="p-4">{getStatusBadge(order.status)}</td>
+                      <td className="py-4.5 px-5">{getStatusBadge(order.status)}</td>
 
-                      <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-4.5 px-5 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">
                           <button
                             type="button"
                             onClick={() => handleOpenDetails(order)}
-                            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5"
+                            className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0"
                           >
-                            <Eye className="w-3.5 h-3.5 stroke-[1.5]" /> Ficha do Pedido
+                            <Eye className="w-4 h-4 stroke-[1.5]" /> Ficha do Pedido
                           </button>
 
                           <select
                             disabled={updatingId === order.id}
                             value={order.status}
                             onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
-                            className="bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer"
+                            className="bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer"
                           >
                             <option value="PENDING">AGUARDANDO PAGAMENTO</option>
                             <option value="PAID">PAGO / AGUARDANDO PREPARAÇÃO</option>
@@ -295,7 +295,7 @@ export default function AdminOrdersPage() {
         {/* MODAL DE DETALHES / GAVETA DO PEDIDO NO ADMIN */}
         {isModalOpen && selectedOrder && (
           <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-slate-200 relative my-6">
+            <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-slate-200 relative my-6">
               {/* Header Modal */}
               <div className="bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-800">
                 <div className="flex items-center gap-3">
@@ -313,7 +313,7 @@ export default function AdminOrdersPage() {
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="text-slate-400 hover:text-white p-1 rounded-lg"
+                  className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer"
                 >
                   <X className="w-5 h-5 stroke-[1.5]" />
                 </button>
@@ -336,7 +336,7 @@ export default function AdminOrdersPage() {
                       type="button"
                       disabled={selectedOrder.status === 'DELIVERED' || updatingId === selectedOrder.id}
                       onClick={() => handleUpdateStatus(selectedOrder.id, 'DELIVERED')}
-                      className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors shadow-xs"
+                      className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
                     >
                       <CheckSquare className="w-4 h-4 stroke-[1.5]" />
                       MARCAR COMO ENTREGUE
