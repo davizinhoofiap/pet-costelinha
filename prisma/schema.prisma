@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  GERENTE
+  ATENDENTE
+  CLIENTE
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id         String   @id @default(uuid())
+  nome       String
+  email      String   @unique
+  cpf        String?  @unique
+  senha_hash String
+  role       Role     @default(CLIENTE)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  orders     Order[]
+
+  @@map("users")
+}
+
+model StoreSetting {
+  id               String   @id @default("default")
+  nome_loja        String   @default("Pet Costelinha")
+  slogan           String   @default("Nutrição, medicamentos e cuidados para pets")
+  telefone         String   @default("(11) 5197-1916")
+  whatsapp         String   @default("(11) 5197-1916")
+  email_suporte    String   @default("contato@petcostelinha.com.br")
+  endereco         String   @default("Rua Benigno Nogueira Franco, 367 - Jd. das Oliveras, SP")
+  cnpj             String   @default("12.345.678/0001-90")
+  chave_pix        String   @default("petcostelinha2021@gmail.com")
+  frete_gratis_min Decimal  @default(30.00) @db.Decimal(10, 2)
+  updated_at       DateTime @updatedAt
+
+  @@map("store_settings")
+}
+
+model Category {
+  id         String    @id @default(uuid())
+  nome       String
+  slug       String    @unique
+  icone      String?
+  products   Product[]
+  created_at DateTime  @default(now())
+
+  @@map("categories")
+}
+
+model Product {
+  id           String      @id @default(uuid())
+  nome         String
+  descricao    String      @db.Text
+  preco_custo  Decimal     @db.Decimal(10, 2)
+  preco_venda  Decimal     @db.Decimal(10, 2)
+  estoque      Int
+  categoria_id String
+  imagem_url   String      @db.Text
+  destaque     Boolean     @default(false)
+  categoria    Category    @relation(fields: [categoria_id], references: [id])
+  order_items  OrderItem[]
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+
+  @@map("products")
+}
+
+model Order {
+  id                 String      @id @default(uuid())
+  user_id            String?
+  cliente_nome       String
+  cliente_email      String
+  cliente_cpf        String
+  cliente_telefone   String?
+  endereco_entrega   String      @db.Text
+  total_valor        Decimal     @db.Decimal(10, 2)
+  status             OrderStatus @default(PENDING)
+  metodo_pagamento   String      @default("PIX")
+  gateway_payment_id String?
+  qr_code_pix        String?     @db.Text
+  qr_code_base64     String?     @db.Text
+  user               User?       @relation(fields: [user_id], references: [id])
+  items              OrderItem[]
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id             String   @id @default(uuid())
+  order_id       String
+  product_id     String
+  quantidade     Int
+  preco_unitario Decimal  @db.Decimal(10, 2)
+  order          Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  product        Product  @relation(fields: [product_id], references: [id])
+
+  @@map("order_items")
+}
