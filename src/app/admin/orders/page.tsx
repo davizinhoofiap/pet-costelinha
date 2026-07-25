@@ -137,7 +137,7 @@ export default function AdminOrdersPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6 max-w-7xl mx-auto font-sans relative">
+      <div className="w-full space-y-6 font-sans relative">
         {/* TOAST DE NOTIFICAÇÃO */}
         {toastMessage && (
           <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 text-xs font-bold flex items-center gap-2.5 animate-bounce">
@@ -145,7 +145,7 @@ export default function AdminOrdersPage() {
           </div>
         )}
 
-        {/* Header */}
+        {/* Header Amplo */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-xl font-black text-slate-900 flex items-center gap-2.5">
@@ -164,7 +164,7 @@ export default function AdminOrdersPage() {
           </button>
         </div>
 
-        {/* Filters */}
+        {/* Filters Amplos */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row items-center gap-4">
           <div className="relative flex-1 w-full">
             <input
@@ -196,7 +196,7 @@ export default function AdminOrdersPage() {
           </div>
         </div>
 
-        {/* Table Espaçosa e Ampla */}
+        {/* Table Ampla e Espaçosa */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -204,7 +204,7 @@ export default function AdminOrdersPage() {
                 <tr>
                   <th className="py-4.5 px-5 min-w-[140px]">ID Pedido</th>
                   <th className="py-4.5 px-5 min-w-[200px]">Cliente & CPF</th>
-                  <th className="py-4.5 px-5 min-w-[240px]">Itens Comprados</th>
+                  <th className="py-4.5 px-5 min-w-[260px]">Itens Comprados</th>
                   <th className="py-4.5 px-5 min-w-[130px]">Total Pago</th>
                   <th className="py-4.5 px-5 min-w-[240px]">Status da Entrega</th>
                   <th className="py-4.5 px-5 text-right min-w-[260px]">Ações / Etapa</th>
@@ -239,7 +239,7 @@ export default function AdminOrdersPage() {
                       </td>
 
                       <td className="py-4.5 px-5">
-                        <div className="space-y-1 max-w-xs text-xs">
+                        <div className="space-y-1 max-w-sm text-xs">
                           {order.items?.map((item: any) => (
                             <div key={item.id} className="flex justify-between gap-2">
                               <span className="truncate text-slate-700 font-medium">
