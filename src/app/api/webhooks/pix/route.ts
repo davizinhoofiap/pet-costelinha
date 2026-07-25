@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { sendAdminOrderNotification, sendCustomerOrderConfirmation } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,14 +44,44 @@ async function processPaymentNotification(paymentId: string) {
             { gateway_payment_id: String(paymentId) },
           ],
         },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
       });
 
       if (order) {
-        await prisma.order.update({
+        // Atualizar status para PAID no MySQL
+        const updatedOrder = await prisma.order.update({
           where: { id: order.id },
           data: { status: 'PAID' },
         });
+
         console.log(`✅ SUCESSO WEBHOOK: Pedido #${order.id} marcado como PAGO no banco MySQL!`);
+
+        // Disparar e-mails de notificação automática para o Gerente / Atendentes e Cliente
+        const emailPayload = {
+          orderId: order.id,
+          clienteNome: order.cliente_nome,
+          clienteEmail: order.cliente_email,
+          clienteCpf: order.cliente_cpf,
+          clienteTelefone: order.cliente_telefone || 'Não Informado',
+          enderecoEntrega: order.endereco_entrega,
+          totalValor: Number(order.total_valor),
+          items: order.items.map((i) => ({
+            nome: i.product?.nome || 'Produto Pet',
+            quantidade: i.quantidade,
+            precoUnitario: Number(i.preco_unitario),
+          })),
+          status: 'PAID',
+        };
+
+        // Envio assíncrono para gerente e cliente
+        sendAdminOrderNotification(emailPayload).catch((e) => console.error('Erro ao enviar e-mail admin:', e));
+        sendCustomerOrderConfirmation(emailPayload).catch((e) => console.error('Erro ao enviar e-mail cliente:', e));
       } else {
         console.warn(`⚠️ Webhook: Nenhum pedido encontrado para a transação Mercado Pago ID ${paymentId}`);
       }
