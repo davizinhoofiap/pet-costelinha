@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { AdminLayout } from '@/components/AdminLayout';
-import { Package, Plus, Edit2, Trash2, Search, X, AlertTriangle } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2, Search, X, AlertTriangle, Filter, Sparkles, Image as ImageIcon } from 'lucide-react';
 import { TableRowSkeleton } from '@/components/ui/Skeleton';
 import { formatCurrency } from '@/lib/masks';
 
@@ -11,6 +11,7 @@ export default function AdminProductsPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('ALL');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export default function AdminProductsPage() {
       if (catRes.ok) {
         const catData = await catRes.json();
         setCategories(catData);
-        if (catData.length > 0) setCategoriaId(catData[0].id);
+        if (catData.length > 0 && !categoriaId) setCategoriaId(catData[0].id);
       }
     } catch (err) {
       console.error(err);
@@ -63,6 +64,7 @@ export default function AdminProductsPage() {
     setImagemUrl('https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop&q=80');
     setDestaque(false);
     setModalError('');
+    if (categories.length > 0) setCategoriaId(categories[0].id);
     setIsModalOpen(true);
   };
 
@@ -129,61 +131,82 @@ export default function AdminProductsPage() {
     }
   };
 
-  const filteredProducts = products.filter(
-    (p) =>
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch = 
       p.nome.toLowerCase().includes(search.toLowerCase()) ||
-      p.categoria?.nome.toLowerCase().includes(search.toLowerCase())
-  );
+      p.categoria?.nome.toLowerCase().includes(search.toLowerCase());
+
+    const matchesCategory = 
+      selectedCategoryFilter === 'ALL' || p.categoria_id === selectedCategoryFilter;
+
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 font-sans max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div>
-            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <Package className="w-5 h-5 text-slate-700 stroke-[1.5]" /> Gestão de Estoque & Produtos
+            <h1 className="text-xl font-black text-slate-900 flex items-center gap-2.5">
+              <Package className="w-6 h-6 text-slate-800 stroke-[1.5]" /> Gestão de Estoque & Produtos
             </h1>
-            <p className="text-xs text-slate-500">
-              Controle de preços de custo, venda, estoque mínimo e cálculo de margem de lucro.
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Visualize, edite preços de custo/venda, altere estoque e cadastre novos itens no catálogo da loja.
             </p>
           </div>
 
           <button
             onClick={handleOpenAdd}
-            className="bg-slate-900 text-white hover:bg-slate-800 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs"
+            className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md active:scale-98 shrink-0 cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[1.5]" /> Cadastrar Produto
+            <Plus className="w-4 h-4 stroke-[2]" /> Cadastrar Novo Produto
           </button>
         </div>
 
-        {/* Search */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="relative">
+        {/* Filtros e Busca */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row items-center gap-4">
+          <div className="relative flex-1 w-full">
             <input
               type="text"
-              placeholder="Buscar produto por nome ou categoria..."
+              placeholder="Buscar por nome do produto ou especificações..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-medium"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 stroke-[1.5]" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 stroke-[1.5]" />
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <Filter className="w-4 h-4 text-slate-400 stroke-[1.5]" />
+            <select
+              value={selectedCategoryFilter}
+              onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer w-full md:w-auto"
+            >
+              <option value="ALL">Todas as Categorias ({products.length})</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.nome}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        {/* Tabela Espaçosa e Legível */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200/80">
+              <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200/80">
                 <tr>
-                  <th className="p-4">Produto</th>
-                  <th className="p-4">Categoria</th>
-                  <th className="p-4">Custo</th>
-                  <th className="p-4">Venda</th>
-                  <th className="p-4">Margem de Lucro</th>
-                  <th className="p-4">Estoque</th>
-                  <th className="p-4 text-right">Ações</th>
+                  <th className="py-4 px-5 min-w-[280px]">Produto & Foto</th>
+                  <th className="py-4 px-5 min-w-[140px]">Categoria</th>
+                  <th className="py-4 px-5 min-w-[120px]">Preço de Custo</th>
+                  <th className="py-4 px-5 min-w-[130px]">Preço de Venda</th>
+                  <th className="py-4 px-5 min-w-[150px]">Margem de Lucro</th>
+                  <th className="py-4 px-5 min-w-[130px]">Estoque</th>
+                  <th className="py-4 px-5 text-right min-w-[120px]">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -191,8 +214,8 @@ export default function AdminProductsPage() {
                   [...Array(4)].map((_, i) => <TableRowSkeleton key={i} />)
                 ) : filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-slate-500 font-medium">
-                      Nenhum produto cadastrado.
+                    <td colSpan={7} className="p-12 text-center text-slate-500 font-medium">
+                      Nenhum produto localizado com os filtros selecionados.
                     </td>
                   </tr>
                 ) : (
@@ -203,62 +226,72 @@ export default function AdminProductsPage() {
                     const margemPercent = venda > 0 ? ((venda - custo) / venda) * 100 : 0;
 
                     return (
-                      <tr key={prod.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="p-4 flex items-center gap-3">
+                      <tr key={prod.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-4 px-5 flex items-center gap-3.5">
                           <img
                             src={prod.imagem_url}
                             alt={prod.nome}
-                            className="w-9 h-9 object-contain bg-white rounded-lg p-0.5 border border-slate-200 shrink-0"
+                            className="w-12 h-12 object-contain bg-white rounded-xl p-1 border border-slate-200 shrink-0 shadow-2xs"
                           />
-                          <div>
-                            <p className="font-semibold text-slate-900">{prod.nome}</p>
+                          <div className="space-y-0.5">
+                            <p className="font-bold text-slate-900 text-xs leading-snug">{prod.nome}</p>
                             {prod.destaque && (
-                              <span className="text-[10px] text-amber-700 font-medium bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
-                                Destaque
+                              <span className="inline-flex items-center gap-1 text-[10px] text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                <Sparkles className="w-3 h-3 text-amber-600 stroke-[1.5]" /> Destaque Loja
                               </span>
                             )}
                           </div>
                         </td>
 
-                        <td className="p-4 font-normal text-slate-500">
-                          {prod.categoria?.nome || 'Geral'}
+                        <td className="py-4 px-5">
+                          <span className="bg-slate-100 text-slate-800 font-semibold px-2.5 py-1 rounded-lg text-[11px]">
+                            {prod.categoria?.nome || 'Geral'}
+                          </span>
                         </td>
 
-                        <td className="p-4 font-mono text-slate-500">
+                        <td className="py-4 px-5 font-mono text-slate-500">
                           {formatCurrency(custo)}
                         </td>
 
-                        <td className="p-4 font-mono font-bold text-slate-900">
+                        <td className="py-4 px-5 font-mono font-black text-slate-900 text-sm">
                           {formatCurrency(venda)}
                         </td>
 
-                        <td className="p-4 font-semibold text-emerald-700">
-                          {formatCurrency(margemReais)}
-                          <span className="block text-[10px] text-slate-400 font-normal">
+                        <td className="py-4 px-5">
+                          <span className="font-bold text-emerald-700 block text-xs">
+                            +{formatCurrency(margemReais)}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono font-medium block">
                             ({margemPercent.toFixed(1)}% margem)
                           </span>
                         </td>
 
-                        <td className="p-4">
+                        <td className="py-4 px-5">
                           {prod.estoque <= 5 ? (
-                            <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-[11px] font-semibold">
-                              <AlertTriangle className="w-3 h-3 stroke-[1.5]" /> {prod.estoque} un. (Baixo)
+                            <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-1 rounded-lg text-[11px] font-extrabold">
+                              <AlertTriangle className="w-3.5 h-3.5 text-rose-600 stroke-[1.5]" /> {prod.estoque} un. (Baixo)
                             </span>
                           ) : (
-                            <span className="text-slate-700 font-medium">{prod.estoque} un.</span>
+                            <span className="text-slate-900 font-bold bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg text-[11px]">
+                              {prod.estoque} un.
+                            </span>
                           )}
                         </td>
 
-                        <td className="p-4 text-right space-x-1">
+                        <td className="py-4 px-5 text-right space-x-1">
                           <button
+                            type="button"
                             onClick={() => handleOpenEdit(prod)}
-                            className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                            title="Editar Especificações"
                           >
                             <Edit2 className="w-4 h-4 stroke-[1.5]" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleDeleteProduct(prod.id)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                            title="Excluir Produto"
                           >
                             <Trash2 className="w-4 h-4 stroke-[1.5]" />
                           </button>
@@ -272,44 +305,55 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {/* Modal */}
+        {/* MODAL DE CADASTRO / EDIÇÃO ESPAÇOSO E ORGANIZADO */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl p-6 space-y-4 text-slate-900 relative shadow-xl">
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white border border-slate-200 w-full max-w-2xl rounded-2xl p-6 space-y-5 text-slate-900 relative shadow-2xl my-6">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                <h3 className="text-sm font-bold text-slate-900">
-                  {editingId ? 'Editar Especificações do Produto' : 'Cadastrar Novo Item'}
-                </h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                  <X className="w-4 h-4 stroke-[1.5]" />
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-slate-900 text-white rounded-xl">
+                    <Package className="w-5 h-5 stroke-[1.5]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      {editingId ? 'Editar Produto' : 'Cadastrar Novo Item no Estoque'}
+                    </h3>
+                    <p className="text-[11px] text-slate-400">Preencha as especificações comerciais</p>
+                  </div>
+                </div>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
+                  <X className="w-5 h-5 stroke-[1.5]" />
                 </button>
               </div>
 
               {modalError && (
-                <p className="text-xs text-rose-700 bg-rose-50 p-2.5 rounded-xl border border-rose-200 font-semibold">
+                <p className="text-xs text-rose-700 bg-rose-50 p-3 rounded-xl border border-rose-200 font-semibold">
                   {modalError}
                 </p>
               )}
 
-              <form onSubmit={handleSaveProduct} className="space-y-3">
+              <form onSubmit={handleSaveProduct} className="space-y-4">
+                {/* Nome do Produto */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Nome do Produto *</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Nome Comercial do Produto *</label>
                   <input
                     type="text"
                     required
+                    placeholder="Ex: Ração Premier Cães Adultos 15kg"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-medium"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                {/* Categoria e Estoque */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Categoria *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Categoria *</label>
                     <select
                       value={categoriaId}
                       onChange={(e) => setCategoriaId(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer"
                     >
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -320,88 +364,110 @@ export default function AdminProductsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Estoque Inicial (Unidades) *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Estoque (Unidades) *</label>
                     <input
                       type="number"
                       required
                       min="0"
                       value={estoque}
                       onChange={(e) => setEstoque(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-bold"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                {/* Preço de Custo e Preço de Venda */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Preço de Custo (R$) *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Preço de Custo (R$) *</label>
                     <input
                       type="number"
                       step="0.01"
                       required
+                      placeholder="0.00"
                       value={precoCusto}
                       onChange={(e) => setPrecoCusto(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-mono font-semibold"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Preço de Venda (R$) *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Preço de Venda (R$) *</label>
                     <input
                       type="number"
                       step="0.01"
                       required
+                      placeholder="0.00"
                       value={precoVenda}
                       onChange={(e) => setPrecoVenda(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-mono font-bold text-emerald-700"
                     />
                   </div>
                 </div>
 
+                {/* Descrição Comercial */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Descrição Comercial</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Descrição Comercial</label>
                   <textarea
                     rows={2}
+                    placeholder="Resumo dos benefícios e características do produto..."
                     value={descricao}
                     onChange={(e) => setDescricao(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">URL da Imagem do Produto</label>
-                  <input
-                    type="url"
-                    value={imagemUrl}
-                    onChange={(e) => setImagemUrl(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
-                  />
+                {/* URL da Imagem + Preview */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-700">URL da Imagem do Produto</label>
+                  <div className="flex gap-3 items-center">
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      value={imagemUrl}
+                      onChange={(e) => setImagemUrl(e.target.value)}
+                      className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                    />
+                    {imagemUrl ? (
+                      <img
+                        src={imagemUrl}
+                        alt="Preview"
+                        className="w-10 h-10 object-contain bg-white border border-slate-200 rounded-lg shrink-0 p-0.5"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 shrink-0">
+                        <ImageIcon className="w-5 h-5 stroke-[1.5]" />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-1">
+                {/* Checkbox Destaque */}
+                <div className="flex items-center gap-2.5 pt-1">
                   <input
                     type="checkbox"
                     id="destaqueCheck"
                     checked={destaque}
                     onChange={(e) => setDestaque(e.target.checked)}
-                    className="w-4 h-4 accent-slate-900 rounded"
+                    className="w-4 h-4 accent-slate-900 rounded cursor-pointer"
                   />
-                  <label htmlFor="destaqueCheck" className="text-xs font-semibold text-slate-700">
-                    Destacar na primeira página da loja
+                  <label htmlFor="destaqueCheck" className="text-xs font-bold text-slate-800 cursor-pointer">
+                    Destacar na primeira página da loja (Destaques da Semana)
                   </label>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                {/* Botoes de Ação */}
+                <div className="pt-4 border-t border-slate-100 flex justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900"
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="bg-slate-900 text-white hover:bg-slate-800 px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider"
+                    className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-colors cursor-pointer"
                   >
                     Salvar Produto
                   </button>
