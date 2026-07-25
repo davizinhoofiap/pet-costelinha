@@ -9,7 +9,6 @@ export interface PixPaymentResponse {
 
 /**
  * Gera Cobrança PIX Oficial via Mercado Pago Payment API v1
- * Com data de expiração de 24 horas para evitar que a chave expire rapidamente
  */
 export async function createPixPayment(
   orderId: string,
@@ -26,8 +25,8 @@ export async function createPixPayment(
       const formattedAmount = Number(amount.toFixed(2));
       const cleanCpf = customerCpf.replace(/\D/g, '');
 
-      // Definir expiração para 24 horas a partir do momento da compra
-      const expirationDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      // Garantir formato de e-mail válido para a API
+      const validEmail = customerEmail && customerEmail.includes('@') ? customerEmail : 'comprador@petcostelinha.com.br';
 
       const response = await fetch('https://api.mercadopago.com/v1/payments', {
         method: 'POST',
@@ -41,14 +40,13 @@ export async function createPixPayment(
           description: `Pedido Pet Costelinha #${orderId.slice(0, 8)}`,
           payment_method_id: 'pix',
           external_reference: orderId,
-          date_of_expiration: expirationDate,
           payer: {
-            email: customerEmail,
+            email: validEmail,
             first_name: customerName.split(' ')[0] || 'Cliente',
             last_name: customerName.split(' ').slice(1).join(' ') || 'Pet',
             identification: {
               type: 'CPF',
-              number: cleanCpf,
+              number: cleanCpf || '11144477735',
             },
           },
           notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://pet-costelinha.vercel.app'}/api/webhooks/pix`,
@@ -77,13 +75,15 @@ export async function createPixPayment(
       } else {
         const errText = await response.text();
         console.error('❌ Erro na resposta da API Mercado Pago:', response.status, errText);
+        throw new Error(`Mercado Pago API (${response.status}): ${errText}`);
       }
-    } catch (error) {
-      console.warn('⚠️ Erro de conexão com a API do Mercado Pago:', error);
+    } catch (error: any) {
+      console.error('⚠️ Erro na integração Mercado Pago:', error);
+      throw error;
     }
   }
 
-  // GERADOR LOCAL DINÂMICO DE PIX (Fallback para ambiente de testes local sem internet)
+  // GERADOR LOCAL DE TESTES (Fallback apenas para ambiente sem token configurado)
   const mockPaymentId = `MP-PIX-${Date.now()}`;
   const mockPixCopiaECola = `00020126580014BR.GOV.BCB.PIX0136petcostelinha2021@gmail.com520400005303986540${amount.toFixed(
     2
