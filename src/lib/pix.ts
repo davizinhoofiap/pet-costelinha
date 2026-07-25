@@ -9,6 +9,7 @@ export interface PixPaymentResponse {
 
 /**
  * Gera Cobrança PIX Oficial via Mercado Pago Payment API v1
+ * Com data de expiração de 24 horas para evitar que a chave expire rapidamente
  */
 export async function createPixPayment(
   orderId: string,
@@ -25,6 +26,9 @@ export async function createPixPayment(
       const formattedAmount = Number(amount.toFixed(2));
       const cleanCpf = customerCpf.replace(/\D/g, '');
 
+      // Definir expiração para 24 horas a partir do momento da compra
+      const expirationDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
       const response = await fetch('https://api.mercadopago.com/v1/payments', {
         method: 'POST',
         headers: {
@@ -37,6 +41,7 @@ export async function createPixPayment(
           description: `Pedido Pet Costelinha #${orderId.slice(0, 8)}`,
           payment_method_id: 'pix',
           external_reference: orderId,
+          date_of_expiration: expirationDate,
           payer: {
             email: customerEmail,
             first_name: customerName.split(' ')[0] || 'Cliente',
@@ -58,7 +63,7 @@ export async function createPixPayment(
         if (qrCodeBase64 && !qrCodeBase64.startsWith('data:image')) {
           qrCodeBase64 = `data:image/png;base64,${qrCodeBase64}`;
         } else if (!qrCodeBase64 && qrCode) {
-          qrCodeBase64 = await QRCode.toDataURL(qrCode);
+          qrCodeBase64 = await QRCode.toDataURL(qrCode, { margin: 1, width: 300 });
         }
 
         console.log(`✅ PIX Mercado Pago criado com sucesso para o Pedido ${orderId}. Payment ID: ${data.id}`);

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Check, QrCode, Copy, MessageSquare, RefreshCw, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { X, Check, QrCode, Copy, MessageSquare, RefreshCw, CheckCircle2, ShieldCheck, PhoneCall } from 'lucide-react';
 import { CartItem } from './CartDrawer';
 import { validateCPF } from '@/lib/cpf';
 import { maskCPF, maskPhone, formatCurrency } from '@/lib/masks';
@@ -159,11 +159,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
-  const handleOpenWhatsApp = (orderId?: string) => {
-    const itemsList = cart.map((i) => `• ${i.quantity}x ${i.product.nome}`).join('%0A');
-    const msg = `*SOLICITAÇÃO DE PEDIDO - PET COSTELINHA*%0A%0A*Pedido:* #${orderId || 'NOVO'}%0A*Cliente:* ${nome}%0A*CPF:* ${cpf}%0A*Telefone:* ${telefone}%0A*Endereço:* ${endereco}%0A%0A*Itens:*%0A${itemsList}%0A%0A*Total:* ${formatCurrency(
-      totalValor
-    )}`;
+  const handleOpenWhatsApp = (orderId?: string, isPaid: boolean = false) => {
+    const itemsList = cart.length > 0 
+      ? cart.map((i) => `• ${i.quantity}x ${i.product.nome}`).join('%0A')
+      : '• Itens do Pedido no Sistema';
+      
+    const finalOrderId = orderId || orderResult?.orderId || 'NOVO';
+    const finalTotal = orderResult?.total || totalValor;
+
+    const msg = isPaid
+      ? `*PEDIDO PAGO COM SUCESSO - PET COSTELINHA*%0A%0A*Pedido:* #${finalOrderId}%0A*Cliente:* ${nome}%0A*CPF:* ${cpf}%0A*Telefone:* ${telefone}%0A*Endereço:* ${endereco}%0A*Status:* ✅ PAGO VIA PIX (Mercado Pago)%0A%0A*Itens Comprados:*%0A${itemsList}%0A%0A*Total Pago:* ${formatCurrency(finalTotal)}%0A%0A_Olá! Realizei o pagamento do meu pedido no site via PIX Mercado Pago e gostaria de acompanhar a entrega!_`
+      : `*SOLICITAÇÃO DE PEDIDO - PET COSTELINHA*%0A%0A*Pedido:* #${finalOrderId}%0A*Cliente:* ${nome}%0A*CPF:* ${cpf}%0A*Telefone:* ${telefone}%0A*Endereço:* ${endereco}%0A%0A*Itens:*%0A${itemsList}%0A%0A*Total:* ${formatCurrency(finalTotal)}`;
 
     window.open(`https://wa.me/551151971916?text=${msg}`, '_blank');
   };
@@ -413,27 +419,52 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
           )}
 
-          {/* STEP 3: SUCCESS (Confirmação Automática) */}
+          {/* STEP 3: SUCCESS (Confirmação Automática + Botão de Envio WhatsApp) */}
           {step === 'SUCCESS' && (
-            <div className="text-center py-6 space-y-4">
+            <div className="text-center py-6 space-y-5">
               <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full mx-auto flex items-center justify-center shadow-xs">
                 <CheckCircle2 className="w-8 h-8 stroke-[2]" />
               </div>
+
               <div className="space-y-1">
                 <h3 className="text-lg font-black text-slate-900">Pagamento Confirmado com Sucesso!</h3>
-                <p className="text-xs text-slate-600 max-w-sm mx-auto">
-                  Sua transação foi aprovada pelo Mercado Pago. O comprovante e a nota fiscal foram enviados para o seu e-mail.
+                <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
+                  Sua compra foi aprovada! O comprovante e a nota fiscal foram gravados no sistema.
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  onClose();
-                  setStep('FORM');
-                }}
-                className="bg-slate-900 text-white hover:bg-slate-800 font-extrabold px-6 py-3 rounded-xl text-xs uppercase tracking-wider shadow-sm transition-colors"
-              >
-                Concluir e Retornar à Loja
-              </button>
+
+              {/* Botão de Notificação Direta no WhatsApp com todos os dados da compra */}
+              <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-3 max-w-md mx-auto">
+                <div className="text-left space-y-1">
+                  <span className="text-[10px] font-mono font-bold text-emerald-800 uppercase block">
+                    [ NOTIFICAÇÃO DA LOJA ]
+                  </span>
+                  <p className="text-xs text-emerald-950 font-medium">
+                    Quer avisar o Petshop no WhatsApp para agilizar a separação e entrega do seu pedido?
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenWhatsApp(undefined, true)}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-98"
+                >
+                  <PhoneCall className="w-4 h-4 stroke-[1.5]" />
+                  Avisar Petshop no WhatsApp com Dados da Compra
+                </button>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => {
+                    onClose();
+                    setStep('FORM');
+                  }}
+                  className="bg-slate-900 text-white hover:bg-slate-800 font-extrabold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-sm transition-colors"
+                >
+                  Concluir e Retornar à Loja
+                </button>
+              </div>
             </div>
           )}
         </div>

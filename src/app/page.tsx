@@ -47,6 +47,34 @@ export default function StorefrontHomePage() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // 1. Carregar carrinho salvo no localStorage ao iniciar
+  useEffect(() => {
+    try {
+      const savedCart = localStorage.getItem('pet_costelinha_cart');
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCart(parsed);
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao ler carrinho do localStorage:', err);
+    }
+  }, []);
+
+  // 2. Persistir carrinho no localStorage sempre que houver alteração
+  useEffect(() => {
+    try {
+      if (cart.length > 0) {
+        localStorage.setItem('pet_costelinha_cart', JSON.stringify(cart));
+      } else {
+        localStorage.removeItem('pet_costelinha_cart');
+      }
+    } catch (err) {
+      console.error('Erro ao salvar carrinho no localStorage:', err);
+    }
+  }, [cart]);
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -113,6 +141,9 @@ export default function StorefrontHomePage() {
 
   const handleClearCart = () => {
     setCart([]);
+    try {
+      localStorage.removeItem('pet_costelinha_cart');
+    } catch (err) {}
   };
 
   // Filtragem
