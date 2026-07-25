@@ -14,7 +14,7 @@ import { ServicesSection } from '@/components/ServicesSection';
 import { Footer } from '@/components/Footer';
 import { ProductCardSkeleton } from '@/components/ui/Skeleton';
 import { Toast, ToastProps } from '@/components/ui/Toast';
-import { PackageX, ChevronDown, Sparkles } from 'lucide-react';
+import { PackageX, ChevronDown } from 'lucide-react';
 
 export default function StorefrontHomePage() {
   const [products, setProducts] = useState<ProductType[]>([]);
@@ -220,7 +220,7 @@ export default function StorefrontHomePage() {
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {[...Array(8)].map((_, i) => (
                   <ProductCardSkeleton key={i} />
                 ))}
@@ -245,8 +245,8 @@ export default function StorefrontHomePage() {
               </div>
             ) : (
               <div className="space-y-8">
-                {/* Grade de 8 Produtos Iniciais */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Grade de Produtos Ampliada e Sem Corte */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {displayedProducts.map((product) => (
                     <ProductCard
                       key={product.id}
@@ -262,7 +262,7 @@ export default function StorefrontHomePage() {
                   <div className="text-center pt-4">
                     <button
                       onClick={() => setVisibleLimit((prev) => prev + 12)}
-                      className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider px-8 py-3.5 rounded-2xl shadow-md transition-all active:scale-98"
+                      className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider px-8 py-3.5 rounded-2xl shadow-md transition-all active:scale-98 cursor-pointer"
                     >
                       Veja Mais Produtos (+{filteredProducts.length - displayedProducts.length})
                       <ChevronDown className="w-4 h-4 text-orange-400 stroke-[2]" />
