@@ -59,6 +59,14 @@ export async function POST(req: Request) {
       });
     }
 
+    // Validação de Valor Mínimo R$ 1,00 exigido pelo Mercado Pago PIX
+    if (totalCalculado < 1.00) {
+      return NextResponse.json(
+        { error: 'O valor total mínimo para pagamentos via PIX Mercado Pago é de R$ 1,00.' },
+        { status: 400 }
+      );
+    }
+
     // 4. Criar Pedido no MySQL
     const newOrder = await prisma.order.create({
       data: {

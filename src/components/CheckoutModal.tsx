@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, Check, QrCode, Copy, MessageSquare, ShieldCheck, CreditCard, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Check, QrCode, Copy, MessageSquare, RefreshCw, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { CartItem } from './CartDrawer';
 import { validateCPF } from '@/lib/cpf';
 import { maskCPF, maskPhone, formatCurrency } from '@/lib/masks';
@@ -41,6 +41,34 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const [copiedPix, setCopiedPix] = useState(false);
 
+  // Polling automático para verificar a confirmação do pagamento via Webhook
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (step === 'PIX_SCREEN' && orderResult?.orderId) {
+      intervalId = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/checkout/status?orderId=${orderResult.orderId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.status === 'PAID') {
+              clearInterval(intervalId);
+              setStep('SUCCESS');
+              onClearCart();
+              onShowToast('🎉 Pagamento Confirmado com Sucesso via Mercado Pago!', 'success');
+            }
+          }
+        } catch (err) {
+          console.error('Erro no polling de verificação do PIX:', err);
+        }
+      }, 3500);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [step, orderResult, onClearCart, onShowToast]);
+
   if (!isOpen) return null;
 
   const totalValor = cart.reduce((acc, item) => {
@@ -68,6 +96,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     if (!validateCPF(cpf)) {
       setCpfError('CPF com formato ou dígitos verificadores inválidos.');
       onShowToast('Verifique os dígitos do CPF informado.', 'error');
+      return;
+    }
+
+    if (totalValor < 1.00) {
+      onShowToast('O valor mínimo total para pagamento via PIX é de R$ 1,00.', 'error');
       return;
     }
 
@@ -103,7 +136,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
       if (paymentMethod === 'PIX') {
         setStep('PIX_SCREEN');
-        onShowToast('Código PIX gerado com sucesso!', 'success');
+        onShowToast('Código PIX do Mercado Pago gerado com sucesso!', 'success');
       } else {
         handleOpenWhatsApp(data.orderId);
         setStep('SUCCESS');
@@ -121,27 +154,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     if (orderResult?.pix?.qrCode) {
       navigator.clipboard.writeText(orderResult.pix.qrCode);
       setCopiedPix(true);
-      onShowToast('Chave PIX Copia e Cola copiada para a área de transferência!', 'success');
-      setTimeout(() => setCopiedPix(false), 2000);
-    }
-  };
-
-  const handleSimulateWebhookPayment = async () => {
-    if (!orderResult?.orderId) return;
-
-    try {
-      const res = await fetch('/api/webhooks/pix', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: orderResult.orderId }),
-      });
-      if (res.ok) {
-        onShowToast('Pagamento confirmado via Webhook Mercado Pago!', 'success');
-        setStep('SUCCESS');
-        onClearCart();
-      }
-    } catch (err) {
-      onShowToast('Falha na simulação de webhook.', 'error');
+      onShowToast('Chave Copia e Cola do Mercado Pago copiada!', 'success');
+      setTimeout(() => setCopiedPix(false), 2500);
     }
   };
 
@@ -323,7 +337,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               >
                 {loading ? (
                   <>
-                    <RefreshCw className="w-4 h-4 animate-spin stroke-[1.5]" /> Processando...
+                    <RefreshCw className="w-4 h-4 animate-spin stroke-[1.5]" /> Gerando PIX Mercado Pago...
                   </>
                 ) : (
                   <>Finalizar e Pagar {formatCurrency(totalValor)}</>
@@ -332,89 +346,93 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </form>
           )}
 
-          {/* STEP 2: PIX */}
+          {/* STEP 2: PIX SCREEN (100% Automático via Webhook + Polling) */}
           {step === 'PIX_SCREEN' && orderResult?.pix && (
             <div className="space-y-5 text-center">
-              <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-left flex justify-between items-center text-xs">
+              <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-left flex justify-between items-center text-xs">
                 <div>
                   <p className="text-slate-500 font-medium">Pedido #{orderResult.orderId.slice(0, 8)}</p>
-                  <p className="font-bold text-slate-900">{formatCurrency(orderResult.total)}</p>
+                  <p className="font-bold text-slate-900 text-sm">{formatCurrency(orderResult.total)}</p>
                 </div>
-                <span className="bg-amber-100 text-amber-900 text-[11px] font-semibold px-2.5 py-1 rounded-md">
-                  Aguardando Pagamento
+                <span className="bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-bold px-3 py-1 rounded-md flex items-center gap-1.5 animate-pulse">
+                  <RefreshCw className="w-3 h-3 animate-spin text-amber-700 stroke-[2]" />
+                  Aguardando Pagamento...
                 </span>
               </div>
 
               <div className="flex flex-col items-center justify-center space-y-2">
-                <div className="p-3 bg-white border border-slate-200 rounded-xl shadow-xs inline-block">
+                <div className="p-3.5 bg-white border-2 border-slate-200 rounded-2xl shadow-sm inline-block">
                   <img
                     src={orderResult.pix.qrCodeBase64}
                     alt="QR Code PIX Mercado Pago"
                     className="w-48 h-48 object-contain"
                   />
                 </div>
-                <p className="text-xs text-slate-500 max-w-xs">
-                  Abra o aplicativo do seu banco e escaneie o código QR acima para efetuar o pagamento.
+                <p className="text-xs text-slate-600 max-w-xs leading-relaxed">
+                  Abra o app do seu banco e escaneie o código QR acima. A confirmação é <strong>automática e instantânea</strong>.
                 </p>
               </div>
 
-              <div className="space-y-1.5 text-left bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <label className="block text-[11px] font-bold text-slate-700 uppercase">
-                  Código PIX Copia e Cola:
+              <div className="space-y-2 text-left bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                  Código PIX Copia e Cola Oficial:
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     readOnly
                     value={orderResult.pix.qrCode}
-                    className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-600 truncate"
+                    className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 truncate focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={handleCopyPix}
-                    className="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shrink-0 transition-colors"
+                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 transition-all shadow-xs active:scale-98 ${
+                      copiedPix
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-900 hover:bg-slate-800 text-white'
+                    }`}
                   >
                     {copiedPix ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[2]" /> Copiado
+                        <Check className="w-4 h-4 text-white stroke-[2.5]" /> Código Copiado!
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3.5 h-3.5 stroke-[1.5]" /> Copiar Código PIX
+                        <Copy className="w-4 h-4 stroke-[1.5]" /> Copiar Código PIX
                       </>
                     )}
                   </button>
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleSimulateWebhookPayment}
-                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-xl shadow-xs transition-colors text-xs uppercase tracking-wider"
-              >
-                Simular Confirmação do Pagamento (Webhook Mercado Pago)
-              </button>
+              <div className="text-[11px] text-slate-400 font-mono flex items-center justify-center gap-1.5 pt-1">
+                <ShieldCheck className="w-4 h-4 text-emerald-500 stroke-[1.5]" />
+                Verificando confirmação do banco em tempo real...
+              </div>
             </div>
           )}
 
-          {/* STEP 3: SUCCESS */}
+          {/* STEP 3: SUCCESS (Confirmação Automática) */}
           {step === 'SUCCESS' && (
-            <div className="text-center py-6 space-y-3">
-              <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full mx-auto flex items-center justify-center">
-                <Check className="w-6 h-6 stroke-[2]" />
+            <div className="text-center py-6 space-y-4">
+              <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full mx-auto flex items-center justify-center shadow-xs">
+                <CheckCircle2 className="w-8 h-8 stroke-[2]" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Pedido Confirmado com Sucesso</h3>
-              <p className="text-xs text-slate-600 max-w-sm mx-auto">
-                Obrigado por comprar conosco! O resumo e a nota fiscal serão enviados para o seu e-mail.
-              </p>
+              <div className="space-y-1">
+                <h3 className="text-lg font-black text-slate-900">Pagamento Confirmado com Sucesso!</h3>
+                <p className="text-xs text-slate-600 max-w-sm mx-auto">
+                  Sua transação foi aprovada pelo Mercado Pago. O comprovante e a nota fiscal foram enviados para o seu e-mail.
+                </p>
+              </div>
               <button
                 onClick={() => {
                   onClose();
                   setStep('FORM');
                 }}
-                className="bg-slate-900 text-white hover:bg-slate-800 font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider"
+                className="bg-slate-900 text-white hover:bg-slate-800 font-extrabold px-6 py-3 rounded-xl text-xs uppercase tracking-wider shadow-sm transition-colors"
               >
-                Retornar à Loja
+                Concluir e Retornar à Loja
               </button>
             </div>
           )}
