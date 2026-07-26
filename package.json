@@ -12,6 +12,7 @@
     "generate-pdf": "node scripts/generate-design-pdf.js"
   },
   "dependencies": {
+    "@marsidev/react-turnstile": "^1.5.3",
     "@prisma/client": "^5.10.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
