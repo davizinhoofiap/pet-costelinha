@@ -4,11 +4,14 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Store, KeyRound, Mail, Shield, UserCheck, AlertCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { TurnstileWidget } from '@/components/TurnstileWidget';
+import { GoogleLoginButton } from '@/components/GoogleLoginButton';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +26,11 @@ export default function AdminLoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail, password: loginPass }),
+        body: JSON.stringify({
+          email: loginEmail,
+          password: loginPass,
+          turnstileToken,
+        }),
       });
 
       const data = await res.json();
@@ -43,6 +50,19 @@ export default function AdminLoginPage() {
     }
   };
 
+  const handleGoogleSuccess = (data: any) => {
+    if (data && data.user && data.token) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+
+      if (data.user.role === 'ADMIN' || data.user.role === 'GERENTE' || data.user.role === 'ATENDENTE') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-center items-center p-4 relative font-sans">
       <Link
@@ -52,7 +72,7 @@ export default function AdminLoginPage() {
         <ArrowLeft className="w-3.5 h-3.5 stroke-[1.5]" /> Voltar à Loja Virtual
       </Link>
 
-      <div className="w-full max-w-sm bg-white text-slate-900 border border-slate-200 p-6 rounded-2xl shadow-xl space-y-5">
+      <div className="w-full max-w-sm bg-white text-slate-900 border border-slate-200 p-6 rounded-2xl shadow-xl space-y-4">
         <div className="text-center space-y-1.5">
           <div className="w-10 h-10 bg-slate-900 text-white rounded-xl mx-auto flex items-center justify-center font-bold">
             <Store className="w-5 h-5 stroke-[1.5]" />
@@ -61,7 +81,7 @@ export default function AdminLoginPage() {
             Painel Administrativo RBAC
           </h1>
           <p className="text-xs text-slate-500">
-            Informe suas credenciais funcionais para acessar
+            Informe suas credenciais ou continue com o Google
           </p>
         </div>
 
@@ -72,6 +92,23 @@ export default function AdminLoginPage() {
           </div>
         )}
 
+        {/* 1. Botão do Google OAuth */}
+        <div className="space-y-2">
+          <GoogleLoginButton
+            onSuccess={handleGoogleSuccess}
+            onError={(msg) => setError(msg)}
+            turnstileToken={turnstileToken}
+          />
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-slate-200"></div>
+            <span className="flex-shrink mx-2 text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              ou com e-mail corporativo
+            </span>
+            <div className="flex-grow border-t border-slate-200"></div>
+          </div>
+        </div>
+
+        {/* 2. Formulário com E-mail e Senha */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -108,6 +145,12 @@ export default function AdminLoginPage() {
               <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 stroke-[1.5]" />
             </div>
           </div>
+
+          {/* 3. Widget Anti-Bot do Cloudflare Turnstile */}
+          <TurnstileWidget
+            onVerify={(token) => setTurnstileToken(token)}
+            onExpire={() => setTurnstileToken('')}
+          />
 
           <button
             type="submit"

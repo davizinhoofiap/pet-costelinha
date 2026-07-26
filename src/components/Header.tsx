@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Phone, Store, User } from 'lucide-react';
+import { ShoppingBag, Search, Phone, Store, User, LogOut, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 interface HeaderProps {
@@ -9,6 +9,9 @@ interface HeaderProps {
   onOpenCart: () => void;
   searchTerm: string;
   onSearchChange: (value: string) => void;
+  onOpenAuthModal: () => void;
+  currentUser: any;
+  onLogout: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,6 +19,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCart,
   searchTerm,
   onSearchChange,
+  onOpenAuthModal,
+  currentUser,
+  onLogout,
 }) => {
   const [storeName, setStoreName] = useState('Pet Costelinha');
   const [storePhone, setStorePhone] = useState('(11) 5197-1916');
@@ -31,6 +37,8 @@ export const Header: React.FC<HeaderProps> = ({
       })
       .catch(() => {});
   }, []);
+
+  const isAdminOrStaff = currentUser && ['ADMIN', 'GERENTE', 'ATENDENTE'].includes(currentUser.role);
 
   return (
     <header className="sticky top-0 z-40 bg-slate-900 text-white border-b border-slate-800 shadow-md font-sans">
@@ -86,17 +94,51 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* User Actions & Cart */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/admin/login"
-            className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 px-3.5 py-2 rounded-xl border border-slate-700 transition-colors"
-          >
-            <User className="w-4 h-4 text-slate-400 stroke-[1.5]" /> Portal Admin
-          </Link>
+        <div className="flex items-center gap-2.5">
+          {/* User Auth Section */}
+          {currentUser ? (
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl text-xs">
+                <User className="w-3.5 h-3.5 text-orange-400 stroke-[2]" />
+                <span className="font-semibold text-white max-w-[120px] truncate">{currentUser.nome}</span>
+                {isAdminOrStaff && (
+                  <span className="bg-emerald-500/20 text-emerald-300 font-mono text-[9px] font-extrabold px-1.5 py-0.5 rounded">
+                    {currentUser.role}
+                  </span>
+                )}
+              </div>
 
+              {isAdminOrStaff && (
+                <Link
+                  href="/admin/dashboard"
+                  className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-xl border border-slate-700 transition-colors"
+                >
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 stroke-[1.5]" /> Admin
+                </Link>
+              )}
+
+              <button
+                onClick={onLogout}
+                title="Sair da Conta"
+                className="bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-rose-300 p-2 rounded-xl border border-slate-700 transition-colors"
+              >
+                <LogOut className="w-4 h-4 stroke-[1.5]" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onOpenAuthModal}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 px-3.5 py-2 rounded-2xl border border-slate-700 transition-all cursor-pointer"
+            >
+              <User className="w-4 h-4 text-orange-400 stroke-[2]" />
+              <span>Entrar / Cadastrar</span>
+            </button>
+          )}
+
+          {/* Cart Button */}
           <button
             onClick={onOpenCart}
-            className="relative bg-orange-600 hover:bg-orange-700 text-white font-extrabold px-4 py-2 rounded-2xl text-xs flex items-center gap-2 transition-all shadow-md active:scale-98"
+            className="relative bg-orange-600 hover:bg-orange-700 text-white font-extrabold px-4 py-2 rounded-2xl text-xs flex items-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer"
           >
             <ShoppingBag className="w-4 h-4 stroke-[1.5]" />
             <span className="hidden sm:inline">Meu Carrinho</span>

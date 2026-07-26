@@ -10,6 +10,7 @@ import { ProductCard, ProductType } from '@/components/ProductCard';
 import { ProductDetailsModal } from '@/components/ProductDetailsModal';
 import { CartDrawer, CartItem } from '@/components/CartDrawer';
 import { CheckoutModal } from '@/components/CheckoutModal';
+import { CustomerAuthModal } from '@/components/CustomerAuthModal';
 import { ServicesSection } from '@/components/ServicesSection';
 import { Footer } from '@/components/Footer';
 import { ProductCardSkeleton } from '@/components/ui/Skeleton';
@@ -23,8 +24,6 @@ export default function StorefrontHomePage() {
 
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Limite de visualização inicial (8 produtos para a página não ficar extensa)
   const [visibleLimit, setVisibleLimit] = useState(8);
 
   // Modal de Detalhes do Produto
@@ -34,6 +33,10 @@ export default function StorefrontHomePage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Sessão do Usuário
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Toast System
   const [toasts, setToasts] = useState<Omit<ToastProps, 'onClose'>[]>([]);
@@ -47,7 +50,17 @@ export default function StorefrontHomePage() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // 1. Carregar carrinho salvo no localStorage ao iniciar
+  // 1. Carregar usuário logado do localStorage
+  useEffect(() => {
+    try {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        setCurrentUser(JSON.parse(savedUser));
+      }
+    } catch (e) {}
+  }, []);
+
+  // 2. Carregar carrinho salvo no localStorage ao iniciar
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem('pet_costelinha_cart');
@@ -62,7 +75,7 @@ export default function StorefrontHomePage() {
     }
   }, []);
 
-  // 2. Persistir carrinho no localStorage sempre que houver alteração
+  // 3. Persistir carrinho no localStorage sempre que houver alteração
   useEffect(() => {
     try {
       if (cart.length > 0) {
@@ -146,6 +159,13 @@ export default function StorefrontHomePage() {
     } catch (err) {}
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    setCurrentUser(null);
+    showToast('Você saiu da sua conta.', 'info');
+  };
+
   // Filtragem
   const filteredProducts = products.filter((prod) => {
     const matchesCategory = selectedCategory
@@ -160,7 +180,6 @@ export default function StorefrontHomePage() {
     return matchesCategory && matchesSearch;
   });
 
-  // Produtos visíveis com limite inicial de 8 itens
   const displayedProducts = filteredProducts.slice(0, visibleLimit);
   const hasMoreProducts = filteredProducts.length > visibleLimit;
 
@@ -184,6 +203,9 @@ export default function StorefrontHomePage() {
           setSearchTerm(term);
           setVisibleLimit(8);
         }}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       <main className="flex-1">
@@ -196,7 +218,7 @@ export default function StorefrontHomePage() {
         {/* SEÇÃO 3: JORNADA DO CLIENTE */}
         <JourneyScroll />
 
-        {/* SEÇÃO 4: CATÁLOGO DE PRODUTOS RESTAURADO COM VISUALIZAÇÃO LIMITADA E "VEJA MAIS" */}
+        {/* SEÇÃO 4: CATÁLOGO DE PRODUTOS */}
         <div id="catalogo" className="pt-10">
           <CategoryFilter
             categories={categories}
@@ -245,7 +267,7 @@ export default function StorefrontHomePage() {
               </div>
             ) : (
               <div className="space-y-8">
-                {/* Grade de Produtos Ampliada e Sem Corte */}
+                {/* Grade de Produtos */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {displayedProducts.map((product) => (
                     <ProductCard
@@ -303,6 +325,16 @@ export default function StorefrontHomePage() {
         cart={cart}
         onClearCart={handleClearCart}
         onShowToast={showToast}
+      />
+
+      {/* Modal de Autenticação / Login / Cadastro de Clientes */}
+      <CustomerAuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          showToast(`Bem-vindo(a), ${user.nome}!`, 'success');
+        }}
       />
 
       {/* Footer */}

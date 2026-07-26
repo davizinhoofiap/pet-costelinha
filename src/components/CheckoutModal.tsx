@@ -5,6 +5,7 @@ import { X, Check, QrCode, Copy, MessageSquare, RefreshCw, CheckCircle2, ShieldC
 import { CartItem } from './CartDrawer';
 import { validateCPF } from '@/lib/cpf';
 import { maskCPF, maskPhone, formatCurrency } from '@/lib/masks';
+import { TurnstileWidget } from './TurnstileWidget';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [cpf, setCpf] = useState('');
   const [telefone, setTelefone] = useState('');
   const [endereco, setEndereco] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const [cpfError, setCpfError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -137,6 +139,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           enderecoEntrega: endereco,
           metodoPagamento: paymentMethod,
           items: itemsPayload,
+          turnstileToken,
         }),
       });
 
@@ -146,7 +149,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         throw new Error(data.error || 'Erro ao processar o checkout.');
       }
 
-      // Salva snapshot COMPLETO do pedido para a mensagem do WhatsApp e tela de sucesso
       const snapshot = {
         orderId: data.orderId,
         total: data.total,
@@ -227,10 +229,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     const encodedMsg = encodeURIComponent(text);
     window.open(`https://wa.me/551151971916?text=${encodedMsg}`, '_blank');
-  };
-
-  const handleOpenWhatsApp = (isPaid: boolean = false) => {
-    handleOpenWhatsAppWithSnapshot(purchasedSnapshot, isPaid);
   };
 
   return (
@@ -395,10 +393,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               </div>
 
+              {/* Widget Anti-Bot do Cloudflare Turnstile */}
+              <TurnstileWidget
+                onVerify={(token) => setTurnstileToken(token)}
+                onExpire={() => setTurnstileToken('')}
+              />
+
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-xs transition-colors text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-xs transition-colors text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -478,7 +482,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
           )}
 
-          {/* STEP 3: SUCCESS (Exibe dados REAIS do Pedido + Botão de Envio WhatsApp) */}
+          {/* STEP 3: SUCCESS */}
           {step === 'SUCCESS' && (
             <div className="text-center py-4 space-y-5">
               <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full mx-auto flex items-center justify-center shadow-xs">
@@ -549,7 +553,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => handleOpenWhatsApp(true)}
+                  onClick={() => handleOpenWhatsAppWithSnapshot(purchasedSnapshot, true)}
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer"
                 >
                   <PhoneCall className="w-4 h-4 stroke-[1.5]" />
