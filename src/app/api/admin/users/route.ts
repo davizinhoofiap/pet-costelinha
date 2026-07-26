@@ -2,13 +2,17 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { Role } from '@prisma/client';
-import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/auth';
+import { requireAdminAuth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const admin = requireAdminAuth(req, [Role.ADMIN]);
+    if (!admin) {
+      return NextResponse.json({ error: 'Acesso negado. Apenas administradores podem gerenciar usuários.' }, { status: 403 });
+    }
+
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -29,13 +33,23 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const admin = requireAdminAuth(req, [Role.ADMIN]);
+    if (!admin) {
+      return NextResponse.json({ error: 'Acesso negado. Apenas administradores podem cadastrar usuários.' }, { status: 403 });
+    }
+
     const { nome, email, cpf, senha, role } = await req.json();
 
     if (!nome || !email || !senha || !role) {
       return NextResponse.json({ error: 'Nome, e-mail, senha e cargo são obrigatórios' }, { status: 400 });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (typeof senha !== 'string' || senha.length < 8) {
+      return NextResponse.json({ error: 'A senha deve ter no mínimo 8 caracteres.' }, { status: 400 });
+    }
+
+    const cleanEmail = String(email).toLowerCase().trim();
+    const existingUser = await prisma.user.findUnique({ where: { email: cleanEmail } });
     if (existingUser) {
       return NextResponse.json({ error: 'Este e-mail já está cadastrado' }, { status: 400 });
     }
@@ -44,9 +58,9 @@ export async function POST(req: Request) {
 
     const newUser = await prisma.user.create({
       data: {
-        nome,
-        email,
-        cpf: cpf || null,
+        nome: String(nome).trim(),
+        email: cleanEmail,
+        cpf: cpf ? String(cpf).trim() : null,
         senha_hash,
         role: role as Role,
       },
@@ -69,10 +83,8 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const tokenCookie = cookies().get('token')?.value;
-    const user = tokenCookie ? verifyToken(tokenCookie) : null;
-
-    if (!user || user.role !== 'ADMIN') {
+    const admin = requireAdminAuth(req, [Role.ADMIN]);
+    if (!admin) {
       return NextResponse.json({ error: 'Apenas administradores podem editar contas de usuários.' }, { status: 403 });
     }
 
@@ -82,19 +94,23 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'ID, Nome, E-mail e Cargo são obrigatórios' }, { status: 400 });
     }
 
+    if (novaSenha && (typeof novaSenha !== 'string' || novaSenha.trim().length < 8)) {
+      return NextResponse.json({ error: 'A nova senha deve possuir no mínimo 8 caracteres.' }, { status: 400 });
+    }
+
     const dataToUpdate: any = {
-      nome,
-      email,
-      cpf: cpf || null,
+      nome: String(nome).trim(),
+      email: String(email).toLowerCase().trim(),
+      cpf: cpf ? String(cpf).trim() : null,
       role: role as Role,
     };
 
-    if (novaSenha && novaSenha.trim().length > 0) {
-      dataToUpdate.senha_hash = await bcrypt.hash(novaSenha, 10);
+    if (novaSenha && novaSenha.trim().length >= 8) {
+      dataToUpdate.senha_hash = await bcrypt.hash(novaSenha.trim(), 10);
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id },
+      where: { id: String(id) },
       data: dataToUpdate,
       select: {
         id: true,
@@ -115,10 +131,8 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const tokenCookie = cookies().get('token')?.value;
-    const user = tokenCookie ? verifyToken(tokenCookie) : null;
-
-    if (!user || user.role !== 'ADMIN') {
+    const admin = requireAdminAuth(req, [Role.ADMIN]);
+    if (!admin) {
       return NextResponse.json({ error: 'Apenas administradores podem excluir usuários.' }, { status: 403 });
     }
 
@@ -129,12 +143,11 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'ID é obrigatório' }, { status: 400 });
     }
 
-    // Não permitir excluir a própria conta
-    if (id === user.userId) {
+    if (id === admin.userId) {
       return NextResponse.json({ error: 'Você não pode excluir a sua própria conta ativa.' }, { status: 400 });
     }
 
-    await prisma.user.delete({ where: { id } });
+    await prisma.user.delete({ where: { id: String(id) } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

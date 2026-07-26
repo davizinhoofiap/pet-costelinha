@@ -17,13 +17,7 @@ export async function createPixPayment(
   customerName: string,
   customerCpf: string
 ): Promise<PixPaymentResponse> {
-  // Resolução dinâmica do Token no escopo da função (POST) com fallback inteligente
-  const rawToken = 
-    process.env.MERCADO_PAGO_ACCESS_TOKEN || 
-    process.env.NEXT_PUBLIC_MERCADO_PAGO_ACCESS_TOKEN || 
-    'APP_USR-6903860235338291-072514-c174c19118dd2289d79b7030f5d9d007-1353511502';
-
-  const token = rawToken ? rawToken.trim().replace(/^["']|["']$/g, '') : '';
+  const token = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim().replace(/^["']|["']$/g, '');
 
   if (!token) {
     throw new Error('MERCADO_PAGO_ACCESS_TOKEN não foi encontrado nas variáveis de ambiente.');

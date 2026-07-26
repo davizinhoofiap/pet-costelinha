@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { OrderStatus } from '@prisma/client';
+import { requireAdminAuth } from '@/lib/auth';
 
 export async function GET(req: Request) {
   try {
+    const admin = requireAdminAuth(req);
+    if (!admin) {
+      return NextResponse.json({ error: 'Acesso negado. Autenticação administrativa necessária.' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(req.url);
     const search = searchParams.get('busca');
     const status = searchParams.get('status');
@@ -43,6 +49,11 @@ export async function GET(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
+    const admin = requireAdminAuth(req);
+    if (!admin) {
+      return NextResponse.json({ error: 'Acesso negado. Autenticação administrativa necessária.' }, { status: 403 });
+    }
+
     const { orderId, status } = await req.json();
 
     if (!orderId || !status) {
@@ -50,7 +61,7 @@ export async function PATCH(req: Request) {
     }
 
     const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
+      where: { id: String(orderId) },
       data: { status: status as OrderStatus },
     });
 

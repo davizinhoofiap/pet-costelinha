@@ -1,24 +1,38 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdminAuth } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
+    const admin = requireAdminAuth(req);
+    if (!admin) {
+      return NextResponse.json({ error: 'Acesso negado. Autenticação administrativa necessária.' }, { status: 403 });
+    }
+
     const body = await req.json();
     const { nome, descricao, preco_custo, preco_venda, estoque, categoria_id, imagem_url, destaque } = body;
 
-    if (!nome || !preco_custo || !preco_venda || !categoria_id) {
-      return NextResponse.json({ error: 'Preencha todos os campos obrigatórios' }, { status: 400 });
+    if (!nome || preco_custo === undefined || preco_venda === undefined || !categoria_id) {
+      return NextResponse.json({ error: 'Preencha todos os campos obrigatórios.' }, { status: 400 });
+    }
+
+    const costNum = parseFloat(preco_custo);
+    const sellNum = parseFloat(preco_venda);
+    const stockNum = parseInt(estoque || '0', 10);
+
+    if (isNaN(costNum) || costNum < 0 || isNaN(sellNum) || sellNum < 0 || isNaN(stockNum) || stockNum < 0) {
+      return NextResponse.json({ error: 'Valores de preço e estoque devem ser números positivos.' }, { status: 400 });
     }
 
     const newProduct = await prisma.product.create({
       data: {
-        nome,
-        descricao: descricao || '',
-        preco_custo: parseFloat(preco_custo),
-        preco_venda: parseFloat(preco_venda),
-        estoque: parseInt(estoque || '0', 10),
-        categoria_id,
-        imagem_url: imagem_url || 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop&q=80',
+        nome: String(nome).trim(),
+        descricao: descricao ? String(descricao).trim() : '',
+        preco_custo: costNum,
+        preco_venda: sellNum,
+        estoque: stockNum,
+        categoria_id: String(categoria_id),
+        imagem_url: imagem_url ? String(imagem_url).trim() : 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop&q=80',
         destaque: Boolean(destaque),
       },
     });
@@ -32,6 +46,11 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    const admin = requireAdminAuth(req);
+    if (!admin) {
+      return NextResponse.json({ error: 'Acesso negado. Autenticação administrativa necessária.' }, { status: 403 });
+    }
+
     const body = await req.json();
     const { id, nome, descricao, preco_custo, preco_venda, estoque, categoria_id, imagem_url, destaque } = body;
 
@@ -39,16 +58,24 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'ID do produto é obrigatório' }, { status: 400 });
     }
 
+    const costNum = parseFloat(preco_custo);
+    const sellNum = parseFloat(preco_venda);
+    const stockNum = parseInt(estoque, 10);
+
+    if (isNaN(costNum) || costNum < 0 || isNaN(sellNum) || sellNum < 0 || isNaN(stockNum) || stockNum < 0) {
+      return NextResponse.json({ error: 'Valores de preço e estoque devem ser números positivos.' }, { status: 400 });
+    }
+
     const updatedProduct = await prisma.product.update({
-      where: { id },
+      where: { id: String(id) },
       data: {
-        nome,
-        descricao,
-        preco_custo: parseFloat(preco_custo),
-        preco_venda: parseFloat(preco_venda),
-        estoque: parseInt(estoque, 10),
-        categoria_id,
-        imagem_url,
+        nome: String(nome).trim(),
+        descricao: descricao ? String(descricao).trim() : '',
+        preco_custo: costNum,
+        preco_venda: sellNum,
+        estoque: stockNum,
+        categoria_id: String(categoria_id),
+        imagem_url: imagem_url ? String(imagem_url).trim() : undefined,
         destaque: Boolean(destaque),
       },
     });
@@ -62,6 +89,11 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const admin = requireAdminAuth(req);
+    if (!admin) {
+      return NextResponse.json({ error: 'Acesso negado. Autenticação administrativa necessária.' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
@@ -69,7 +101,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'ID do produto é obrigatório' }, { status: 400 });
     }
 
-    await prisma.product.delete({ where: { id } });
+    await prisma.product.delete({ where: { id: String(id) } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

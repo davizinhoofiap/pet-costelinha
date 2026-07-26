@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/auth';
+import { Role } from '@prisma/client';
+import { requireAdminAuth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const admin = requireAdminAuth(req, [Role.ADMIN, Role.GERENTE]);
+    if (!admin) {
+      return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
+    }
+
     let settings = await prisma.storeSetting.findUnique({
       where: { id: 'default' },
     });
@@ -26,10 +31,8 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   try {
-    const tokenCookie = cookies().get('token')?.value;
-    const user = tokenCookie ? verifyToken(tokenCookie) : null;
-
-    if (!user || user.role !== 'ADMIN') {
+    const admin = requireAdminAuth(req, [Role.ADMIN]);
+    if (!admin) {
       return NextResponse.json(
         { error: 'Acesso restrito a administradores.' },
         { status: 403 }
@@ -42,25 +45,25 @@ export async function PUT(req: Request) {
     const updatedSettings = await prisma.storeSetting.upsert({
       where: { id: 'default' },
       update: {
-        nome_loja: nome_loja || 'Pet Costelinha',
-        slogan: slogan || '',
-        telefone: telefone || '',
-        whatsapp: whatsapp || '',
-        email_suporte: email_suporte || '',
-        endereco: endereco || '',
-        cnpj: cnpj || '',
-        chave_pix: chave_pix || '',
+        nome_loja: nome_loja ? String(nome_loja).trim() : 'Pet Costelinha',
+        slogan: slogan ? String(slogan).trim() : '',
+        telefone: telefone ? String(telefone).trim() : '',
+        whatsapp: whatsapp ? String(whatsapp).trim() : '',
+        email_suporte: email_suporte ? String(email_suporte).trim() : '',
+        endereco: endereco ? String(endereco).trim() : '',
+        cnpj: cnpj ? String(cnpj).trim() : '',
+        chave_pix: chave_pix ? String(chave_pix).trim() : '',
       },
       create: {
         id: 'default',
-        nome_loja: nome_loja || 'Pet Costelinha',
-        slogan: slogan || '',
-        telefone: telefone || '',
-        whatsapp: whatsapp || '',
-        email_suporte: email_suporte || '',
-        endereco: endereco || '',
-        cnpj: cnpj || '',
-        chave_pix: chave_pix || '',
+        nome_loja: nome_loja ? String(nome_loja).trim() : 'Pet Costelinha',
+        slogan: slogan ? String(slogan).trim() : '',
+        telefone: telefone ? String(telefone).trim() : '',
+        whatsapp: whatsapp ? String(whatsapp).trim() : '',
+        email_suporte: email_suporte ? String(email_suporte).trim() : '',
+        endereco: endereco ? String(endereco).trim() : '',
+        cnpj: cnpj ? String(cnpj).trim() : '',
+        chave_pix: chave_pix ? String(chave_pix).trim() : '',
       },
     });
 

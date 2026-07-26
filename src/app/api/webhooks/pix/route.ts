@@ -4,20 +4,15 @@ import { sendAdminOrderNotification, sendCustomerOrderConfirmation } from '@/lib
 export const dynamic = 'force-dynamic';
 
 async function processPaymentNotification(paymentId: string) {
-  const rawToken = 
-    process.env.MERCADO_PAGO_ACCESS_TOKEN || 
-    process.env.NEXT_PUBLIC_MERCADO_PAGO_ACCESS_TOKEN || 
-    'APP_USR-6903860235338291-072514-c174c19118dd2289d79b7030f5d9d007-1353511502';
-
-  const token = rawToken ? rawToken.trim().replace(/^["']|["']$/g, '') : '';
+  const token = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim().replace(/^["']|["']$/g, '');
 
   if (!token) {
-    console.error('❌ Webhook Mercado Pago: Token não configurado.');
+    console.error('❌ Webhook Mercado Pago: MERCADO_PAGO_ACCESS_TOKEN não configurado no ambiente.');
     return;
   }
 
   try {
-    // 1. Consultar dados do pagamento na API oficial do Mercado Pago
+    // 1. Consultar dados oficiais do pagamento diretamente na API do Mercado Pago
     const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -25,7 +20,7 @@ async function processPaymentNotification(paymentId: string) {
     });
 
     if (!mpRes.ok) {
-      console.error(`❌ Erro ao consultar pagamento Mercado Pago ID ${paymentId}: status ${mpRes.status}`);
+      console.error(`❌ Erro ao consultar pagamento Mercado Pago ID ${paymentId}: status HTTP ${mpRes.status}`);
       return;
     }
 
@@ -36,7 +31,6 @@ async function processPaymentNotification(paymentId: string) {
     console.log(`🔔 Webhook Mercado Pago: Notificação de Pagamento ${paymentId} - Status: ${paymentStatus}`);
 
     if (paymentStatus === 'approved') {
-      // 2. Buscar o pedido correspondente por external_reference ou gateway_payment_id
       let order = await prisma.order.findFirst({
         where: {
           OR: [
@@ -54,36 +48,36 @@ async function processPaymentNotification(paymentId: string) {
       });
 
       if (order) {
-        // Atualizar status para PAID no MySQL
-        const updatedOrder = await prisma.order.update({
-          where: { id: order.id },
-          data: { status: 'PAID' },
-        });
+        // Atualizar status apenas se ainda não estiver pago
+        if (order.status !== 'PAID') {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: { status: 'PAID' },
+          });
 
-        console.log(`✅ SUCESSO WEBHOOK: Pedido #${order.id} marcado como PAGO no banco MySQL!`);
+          console.log(`✅ SUCESSO WEBHOOK: Pedido #${order.id} marcado como PAGO no banco MySQL!`);
 
-        // Disparar e-mails de notificação automática para o Gerente / Atendentes e Cliente
-        const emailPayload = {
-          orderId: order.id,
-          clienteNome: order.cliente_nome,
-          clienteEmail: order.cliente_email,
-          clienteCpf: order.cliente_cpf,
-          clienteTelefone: order.cliente_telefone || 'Não Informado',
-          enderecoEntrega: order.endereco_entrega,
-          totalValor: Number(order.total_valor),
-          items: order.items.map((i) => ({
-            nome: i.product?.nome || 'Produto Pet',
-            quantidade: i.quantidade,
-            precoUnitario: Number(i.preco_unitario),
-          })),
-          status: 'PAID',
-        };
+          const emailPayload = {
+            orderId: order.id,
+            clienteNome: order.cliente_nome,
+            clienteEmail: order.cliente_email,
+            clienteCpf: order.cliente_cpf,
+            clienteTelefone: order.cliente_telefone || 'Não Informado',
+            enderecoEntrega: order.endereco_entrega,
+            totalValor: Number(order.total_valor),
+            items: order.items.map((i) => ({
+              nome: i.product?.nome || 'Produto Pet',
+              quantidade: i.quantidade,
+              precoUnitario: Number(i.preco_unitario),
+            })),
+            status: 'PAID',
+          };
 
-        // Envio assíncrono para gerente e cliente
-        sendAdminOrderNotification(emailPayload).catch((e) => console.error('Erro ao enviar e-mail admin:', e));
-        sendCustomerOrderConfirmation(emailPayload).catch((e) => console.error('Erro ao enviar e-mail cliente:', e));
+          sendAdminOrderNotification(emailPayload).catch((e) => console.error('Erro ao enviar e-mail admin:', e));
+          sendCustomerOrderConfirmation(emailPayload).catch((e) => console.error('Erro ao enviar e-mail cliente:', e));
+        }
       } else {
-        console.warn(`⚠️ Webhook: Nenhum pedido encontrado para a transação Mercado Pago ID ${paymentId}`);
+        console.warn(`⚠️ Webhook: Nenhum pedido associado encontrado para a transação ID ${paymentId}`);
       }
     }
   } catch (err) {
@@ -94,24 +88,12 @@ async function processPaymentNotification(paymentId: string) {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    console.log('🔔 Webhook POST recebido:', JSON.stringify(body));
-
     const paymentId = body.data?.id || body.paymentId || body.id;
-    const directOrderId = body.orderId;
-
-    if (directOrderId) {
-      await prisma.order.update({
-        where: { id: directOrderId },
-        data: { status: 'PAID' },
-      }).catch(() => {});
-      return new Response("OK", { status: 200 });
-    }
 
     if (paymentId) {
       await processPaymentNotification(String(paymentId));
     }
 
-    // Sempre retornar status HTTP 200 para confirmação da notificação do Mercado Pago
     return new Response("OK", { status: 200 });
   } catch (error) {
     console.error('Erro no handler POST do webhook:', error);
