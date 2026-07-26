@@ -25,7 +25,7 @@ export function GoogleLoginButton({ onSuccess, onError, turnstileToken, classNam
 
     const handleCredentialResponse = async (response: any) => {
       if (!response || !response.credential) {
-        if (onError) onError('Falha ao obter credenciais do Google.');
+        if (onError) onError('Autenticação cancelada ou credenciais do Google não obtidas.');
         return;
       }
 
@@ -57,28 +57,39 @@ export function GoogleLoginButton({ onSuccess, onError, turnstileToken, classNam
 
     const initializeGoogleSDK = () => {
       if (window.google && buttonRef.current) {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleCredentialResponse,
-        });
+        try {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleCredentialResponse,
+            cancel_on_tap_outside: true,
+          });
 
-        window.google.accounts.id.renderButton(buttonRef.current, {
-          theme: 'outline',
-          size: 'large',
-          width: '100%',
-          text: 'continue_with',
-          locale: 'pt-BR',
-        });
+          window.google.accounts.id.renderButton(buttonRef.current, {
+            theme: 'outline',
+            size: 'large',
+            width: '100%',
+            text: 'continue_with',
+            locale: 'pt-BR',
+          });
+        } catch (err) {
+          console.error('Erro ao inicializar o Google SDK:', err);
+        }
       }
     };
 
     if (!window.google) {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = initializeGoogleSDK;
-      document.head.appendChild(script);
+      const existingScript = document.getElementById('google-gsi-script');
+      if (!existingScript) {
+        const script = document.createElement('script');
+        script.id = 'google-gsi-script';
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.onload = initializeGoogleSDK;
+        document.head.appendChild(script);
+      } else {
+        initializeGoogleSDK();
+      }
     } else {
       initializeGoogleSDK();
     }
