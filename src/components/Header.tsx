@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Phone, Store, User, LogOut, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, Search, Phone, Store, User, LogOut, ShieldCheck, Dog } from 'lucide-react';
 import Link from 'next/link';
 
 interface HeaderProps {
@@ -98,7 +98,11 @@ export const Header: React.FC<HeaderProps> = ({
           {/* User Auth Section */}
           {currentUser ? (
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl text-xs">
+              <Link
+                href="/perfil"
+                className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-xl text-xs transition-colors"
+                title="Acessar Meu Perfil e Pets"
+              >
                 <User className="w-3.5 h-3.5 text-orange-400 stroke-[2]" />
                 <span className="font-semibold text-white max-w-[120px] truncate">{currentUser.nome}</span>
                 {isAdminOrStaff && (
@@ -106,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({
                     {currentUser.role}
                   </span>
                 )}
-              </div>
+              </Link>
 
               {isAdminOrStaff && (
                 <Link
@@ -120,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onLogout}
                 title="Sair da Conta"
-                className="bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-rose-300 p-2 rounded-xl border border-slate-700 transition-colors"
+                className="bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-rose-300 p-2 rounded-xl border border-slate-700 transition-colors cursor-pointer"
               >
                 <LogOut className="w-4 h-4 stroke-[1.5]" />
               </button>

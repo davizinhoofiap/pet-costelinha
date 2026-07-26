@@ -23,17 +23,55 @@ enum OrderStatus {
 }
 
 model User {
-  id         String   @id @default(uuid())
+  id         String     @id @default(uuid())
   nome       String
-  email      String   @unique
-  cpf        String?  @unique
+  email      String     @unique
+  cpf        String?    @unique
+  telefone   String?
+  foto_url   String?    @db.Text
   senha_hash String
-  role       Role     @default(CLIENTE)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  role       Role       @default(CLIENTE)
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
   orders     Order[]
+  addresses  Address[]
+  pets       Pet[]
 
   @@map("users")
+}
+
+model Address {
+  id          String   @id @default(uuid())
+  user_id     String
+  cep         String
+  logradouro  String
+  numero      String
+  complemento String?
+  bairro      String
+  cidade      String
+  estado      String
+  principal   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+model Pet {
+  id         String   @id @default(uuid())
+  user_id    String
+  nome       String
+  especie    String   @default("Cão")
+  raca       String?
+  porte      String?  @default("Médio")
+  idade      String?
+  observacao String?  @db.Text
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("pets")
 }
 
 model StoreSetting {
