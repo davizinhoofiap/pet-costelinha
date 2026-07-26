@@ -18,7 +18,7 @@ declare global {
 export function GoogleLoginButton({ onSuccess, onError, turnstileToken, className = '' }: GoogleLoginButtonProps) {
   const buttonRef = useRef<HTMLDivElement>(null);
 
-  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '1082498234981-demo-petcostelinha.apps.googleusercontent.com';
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '1090723739206-85rcju3kl60ghp9t13ehqi9be9j4p2i9.apps.googleusercontent.com';
 
   useEffect(() => {
     let isMounted = true;
