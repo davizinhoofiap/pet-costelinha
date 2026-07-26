@@ -100,12 +100,11 @@ export default function AdminLoginPage() {
           </div>
         )}
 
-        {/* 1. Botão do Google OAuth */}
+        {/* 1. Botão do Google OAuth (Sem exigência do Turnstile) */}
         <div className="space-y-2">
           <GoogleLoginButton
             onSuccess={handleGoogleSuccess}
             onError={(msg) => setError(msg)}
-            turnstileToken={turnstileToken}
           />
           <div className="relative flex py-1 items-center">
             <div className="flex-grow border-t border-slate-200"></div>
@@ -154,7 +153,7 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          {/* 3. Widget Anti-Bot do Cloudflare Turnstile */}
+          {/* 3. Widget Anti-Bot do Cloudflare Turnstile (Obrigatório para login por senha) */}
           <TurnstileWidget
             onVerify={handleTurnstileVerify}
             onExpire={handleTurnstileExpire}

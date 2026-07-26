@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { signToken } from '@/lib/auth';
 import { Role } from '@prisma/client';
-import { verifyTurnstileToken } from '@/lib/turnstile';
 import { checkRateLimit } from '@/lib/upstash-ratelimit';
 import { getClientIp } from '@/lib/rate-limit';
 
@@ -19,22 +18,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const { credential, idToken, turnstileToken } = await req.json();
+    const { credential, idToken } = await req.json();
     const tokenToValidate = credential || idToken;
 
     if (!tokenToValidate) {
       return NextResponse.json({ error: 'Token do Google OAuth não foi fornecido.' }, { status: 400 });
     }
 
-    // 2. Validação Anti-Bot do Cloudflare Turnstile (se enviado pelo frontend)
-    if (turnstileToken) {
-      const turnstileCheck = await verifyTurnstileToken(turnstileToken, ip);
-      if (!turnstileCheck.success) {
-        return NextResponse.json({ error: turnstileCheck.message || 'Desafio anti-bot falhou.' }, { status: 400 });
-      }
-    }
-
-    // 3. Validação do Token Oficial no Servidor do Google OAuth
+    // 2. Validação Direta do Token Oficial no Servidor do Google OAuth (Sem exigência de Turnstile para Social Login)
     const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${tokenToValidate}`);
 
     if (!googleRes.ok) {
@@ -51,7 +42,7 @@ export async function POST(req: Request) {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // 4. Buscar ou Criar Usuário no Banco de Dados
+    // 3. Buscar ou Criar Usuário no Banco de Dados
     let user = await prisma.user.findUnique({
       where: { email: cleanEmail },
     });
@@ -69,7 +60,7 @@ export async function POST(req: Request) {
       console.log(`✅ Nova conta cadastrada via Google OAuth: ${cleanEmail}`);
     }
 
-    // 5. Emitir JWT da Aplicação
+    // 4. Emitir JWT da Aplicação
     const appToken = signToken({
       userId: user.id,
       nome: user.nome,

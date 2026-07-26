@@ -5,7 +5,6 @@ import React, { useEffect, useRef } from 'react';
 interface GoogleLoginButtonProps {
   onSuccess: (response: { credential?: string; user?: any }) => void;
   onError?: (errMessage: string) => void;
-  turnstileToken?: string;
   className?: string;
 }
 
@@ -15,7 +14,7 @@ declare global {
   }
 }
 
-export function GoogleLoginButton({ onSuccess, onError, turnstileToken, className = '' }: GoogleLoginButtonProps) {
+export function GoogleLoginButton({ onSuccess, onError, className = '' }: GoogleLoginButtonProps) {
   const buttonRef = useRef<HTMLDivElement>(null);
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '1090723739206-85rcju3kl60ghp9t13ehqi9be9j4p2i9.apps.googleusercontent.com';
@@ -35,7 +34,6 @@ export function GoogleLoginButton({ onSuccess, onError, turnstileToken, classNam
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             credential: response.credential,
-            turnstileToken,
           }),
         });
 
@@ -93,7 +91,7 @@ export function GoogleLoginButton({ onSuccess, onError, turnstileToken, classNam
     } else {
       initializeGoogleSDK();
     }
-  }, [googleClientId, onSuccess, onError, turnstileToken]);
+  }, [googleClientId, onSuccess, onError]);
 
   return (
     <div className={`w-full ${className}`}>

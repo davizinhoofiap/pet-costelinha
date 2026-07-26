@@ -183,12 +183,11 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
             </div>
           )}
 
-          {/* Social Google Login Button */}
+          {/* Social Google Login Button (Direto, isento do Turnstile) */}
           <div className="space-y-2">
             <GoogleLoginButton
               onSuccess={handleGoogleSuccess}
               onError={(msg) => setError(msg)}
-              turnstileToken={turnstileToken}
             />
             <div className="relative flex py-1 items-center">
               <div className="flex-grow border-t border-slate-200"></div>
@@ -232,7 +231,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
                 </div>
               </div>
 
-              {/* Anti-bot widget isolado */}
+              {/* Anti-bot widget (para formulário tradicional) */}
               <TurnstileWidget
                 onVerify={handleTurnstileVerify}
                 onExpire={handleTurnstileExpire}
@@ -295,7 +294,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
                 </div>
               </div>
 
-              {/* Anti-bot widget isolado */}
+              {/* Anti-bot widget (para formulário tradicional) */}
               <TurnstileWidget
                 onVerify={handleTurnstileVerify}
                 onExpire={handleTurnstileExpire}
