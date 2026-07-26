@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, Mail, KeyRound, User as UserIcon, AlertCircle, LogOut, CheckCircle2 } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { X, Mail, KeyRound, User as UserIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { GoogleLoginButton } from './GoogleLoginButton';
 import { TurnstileWidget } from './TurnstileWidget';
 
@@ -28,6 +28,14 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
+
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('');
+  }, []);
 
   if (!isOpen) return null;
 
@@ -124,7 +132,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
             <h2 className="text-sm font-bold text-white">Minha Conta - Pet Costelinha</h2>
             <p className="text-[11px] text-slate-400">Acesse com sua conta ou cadastre-se</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1">
+          <button onClick={onClose} className="text-slate-400 hover:text-white p-1 cursor-pointer">
             <X className="w-5 h-5 stroke-[1.5]" />
           </button>
         </div>
@@ -136,7 +144,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
               setTab('LOGIN');
               setError('');
             }}
-            className={`flex-1 py-2.5 text-xs font-bold transition-colors ${
+            className={`flex-1 py-2.5 text-xs font-bold transition-colors cursor-pointer ${
               tab === 'LOGIN'
                 ? 'bg-white text-slate-900 border-b-2 border-orange-600'
                 : 'text-slate-500 hover:text-slate-800'
@@ -149,7 +157,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
               setTab('REGISTER');
               setError('');
             }}
-            className={`flex-1 py-2.5 text-xs font-bold transition-colors ${
+            className={`flex-1 py-2.5 text-xs font-bold transition-colors cursor-pointer ${
               tab === 'REGISTER'
                 ? 'bg-white text-slate-900 border-b-2 border-orange-600'
                 : 'text-slate-500 hover:text-slate-800'
@@ -224,10 +232,10 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
                 </div>
               </div>
 
-              {/* Anti-bot widget */}
+              {/* Anti-bot widget isolado */}
               <TurnstileWidget
-                onVerify={(tok) => setTurnstileToken(tok)}
-                onExpire={() => setTurnstileToken('')}
+                onVerify={handleTurnstileVerify}
+                onExpire={handleTurnstileExpire}
               />
 
               <button
@@ -287,10 +295,10 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
                 </div>
               </div>
 
-              {/* Anti-bot widget */}
+              {/* Anti-bot widget isolado */}
               <TurnstileWidget
-                onVerify={(tok) => setTurnstileToken(tok)}
-                onExpire={() => setTurnstileToken('')}
+                onVerify={handleTurnstileVerify}
+                onExpire={handleTurnstileExpire}
               />
 
               <button

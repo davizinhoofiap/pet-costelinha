@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Check, QrCode, Copy, MessageSquare, RefreshCw, CheckCircle2, ShieldCheck, PhoneCall, MapPin } from 'lucide-react';
 import { CartItem } from './CartDrawer';
 import { validateCPF } from '@/lib/cpf';
@@ -34,6 +34,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const [cpfError, setCpfError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
+
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('');
+  }, []);
 
   // Armazena a resposta da API do Mercado Pago
   const [orderResult, setOrderResult] = useState<{
@@ -393,10 +401,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               </div>
 
-              {/* Widget Anti-Bot do Cloudflare Turnstile */}
+              {/* Widget Anti-Bot do Cloudflare Turnstile isolado */}
               <TurnstileWidget
-                onVerify={(token) => setTurnstileToken(token)}
-                onExpire={() => setTurnstileToken('')}
+                onVerify={handleTurnstileVerify}
+                onExpire={handleTurnstileExpire}
               />
 
               <button

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Store, KeyRound, Mail, Shield, UserCheck, AlertCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -14,6 +14,14 @@ export default function AdminLoginPage() {
   const [turnstileToken, setTurnstileToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
+
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('');
+  }, []);
 
   const handleLogin = async (emailToUse?: string, passToUse?: string) => {
     setError('');
@@ -50,7 +58,7 @@ export default function AdminLoginPage() {
     }
   };
 
-  const handleGoogleSuccess = (data: any) => {
+  const handleGoogleSuccess = useCallback((data: any) => {
     if (data && data.user && data.token) {
       localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('token', data.token);
@@ -61,7 +69,7 @@ export default function AdminLoginPage() {
         router.push('/');
       }
     }
-  };
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-center items-center p-4 relative font-sans">
@@ -148,14 +156,14 @@ export default function AdminLoginPage() {
 
           {/* 3. Widget Anti-Bot do Cloudflare Turnstile */}
           <TurnstileWidget
-            onVerify={(token) => setTurnstileToken(token)}
-            onExpire={() => setTurnstileToken('')}
+            onVerify={handleTurnstileVerify}
+            onExpire={handleTurnstileExpire}
           />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl shadow-xs transition-colors text-xs uppercase tracking-wider"
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl shadow-xs transition-colors text-xs uppercase tracking-wider cursor-pointer"
           >
             {loading ? 'Autenticando...' : 'Acessar Sistema'}
           </button>
@@ -169,21 +177,21 @@ export default function AdminLoginPage() {
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => handleLogin('admin@petcostelinha.com.br', '123456')}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-800 py-1.5 px-1 rounded-lg text-[10px] font-bold transition-colors text-center flex flex-col items-center gap-1"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-800 py-1.5 px-1 rounded-lg text-[10px] font-bold transition-colors text-center flex flex-col items-center gap-1 cursor-pointer"
             >
               <Shield className="w-3.5 h-3.5 text-slate-700 stroke-[1.5]" /> ADMIN
             </button>
 
             <button
               onClick={() => handleLogin('gerente@petcostelinha.com.br', '123456')}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-800 py-1.5 px-1 rounded-lg text-[10px] font-bold transition-colors text-center flex flex-col items-center gap-1"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-800 py-1.5 px-1 rounded-lg text-[10px] font-bold transition-colors text-center flex flex-col items-center gap-1 cursor-pointer"
             >
               <UserCheck className="w-3.5 h-3.5 text-slate-700 stroke-[1.5]" /> GERENTE
             </button>
 
             <button
               onClick={() => handleLogin('atendente@petcostelinha.com.br', '123456')}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-800 py-1.5 px-1 rounded-lg text-[10px] font-bold transition-colors text-center flex flex-col items-center gap-1"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-800 py-1.5 px-1 rounded-lg text-[10px] font-bold transition-colors text-center flex flex-col items-center gap-1 cursor-pointer"
             >
               <Store className="w-3.5 h-3.5 text-slate-700 stroke-[1.5]" /> ATENDENTE
             </button>
