@@ -1,4 +1,4 @@
-# 🐶 Pet Costelinha - E-Commerce & Painel Administrativo Multi-Usuário (RBAC)
+# Pet Costelinha - E-Commerce & Painel Administrativo Multi-Usuário (RBAC)
 
 ![Next.js](https://img.shields.io/badge/Next.js-14.1.0-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
@@ -11,9 +11,9 @@ Aplicação Web Full-Stack para a loja comercial **Pet Costelinha**, combinando 
 
 ---
 
-## 🌟 Funcionalidades Principais
+Funcionalidades Principais
 
-### 🛍️ E-Commerce & Loja Virtual
+E-Commerce & Loja Virtual
 - **Catálogo de Produtos Reais**: Rações Magnus, Special Dog, areias higiênicas, tapetes, gaiolas de madeira, petiscos e medicamentos veterinários com **médias reais de preço do mercado brasileiro**.
 - **Visualização Otimizada**: Exibição inicial de 8 produtos para navegação rápida com expansão sob demanda (*"Veja Mais Produtos"*).
 - **Modal de Detalhes Completo**: Janela modal ao clicar no produto com imagens em alta definição, especificações técnicas, seletor de quantidade e garantia de origem.
@@ -24,7 +24,7 @@ Aplicação Web Full-Stack para a loja comercial **Pet Costelinha**, combinando 
 
 ---
 
-### 🛡️ Painel Administrativo SaaS (RBAC) & Configurações
+### Painel Administrativo SaaS (RBAC) & Configurações
 - **Autenticação Segura JWT**: Criptografia de senhas com `bcryptjs` e gestão de sessões via Cookies HttpOnly.
 - **Níveis de Acesso RBAC**:
   - `ADMIN`: Acesso total, incluindo edição de usuários, relatórios financeiros e dados da loja.
@@ -40,7 +40,7 @@ Aplicação Web Full-Stack para a loja comercial **Pet Costelinha**, combinando 
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **Framework Frontend/Backend**: [Next.js 14 (App Router)](https://nextjs.org/)
 - **Linguagem**: [TypeScript](https://www.typescriptlang.org/)
@@ -53,7 +53,7 @@ Aplicação Web Full-Stack para a loja comercial **Pet Costelinha**, combinando 
 
 ---
 
-## 🚀 Como Executar o Projeto Localmente
+## Como Executar o Projeto Localmente
 
 ### 1. Pré-requisitos
 - Node.js v18+ instalado
@@ -103,7 +103,7 @@ Acesse a aplicação no navegador:
 
 ---
 
-## 🔑 Credenciais para Testes de Acesso (RBAC)
+## Credenciais para Testes de Acesso (RBAC)
 
 No painel de login (`/admin/login`), você pode clicar nos botões de acesso rápido ou utilizar as credenciais:
 
@@ -115,7 +115,7 @@ No painel de login (`/admin/login`), você pode clicar nos botões de acesso rá
 
 ---
 
-## 📂 Estrutura de Pastas do Projeto
+## Estrutura de Pastas do Projeto
 
 ```
 pet-costelinha/
@@ -151,6 +151,6 @@ pet-costelinha/
 
 ---
 
-## 📝 Licença
+## Licença
 
 Este projeto foi desenvolvido para fins comerciais e educacionais. Todos os direitos reservados à **Pet Costelinha**.
