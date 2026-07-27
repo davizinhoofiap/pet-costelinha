@@ -292,8 +292,11 @@ export default function UserProfilePage() {
     }
   };
 
-  // Logout
-  const handleLogout = () => {
+  // Logout com destruição completa do cookie no servidor e no navegador
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     router.push('/');

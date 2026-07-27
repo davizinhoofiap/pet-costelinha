@@ -159,7 +159,10 @@ export default function StorefrontHomePage() {
     } catch (err) {}
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     setCurrentUser(null);
