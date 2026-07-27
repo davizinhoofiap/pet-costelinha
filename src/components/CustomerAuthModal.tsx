@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { X, Mail, KeyRound, User as UserIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { GoogleLoginButton } from './GoogleLoginButton';
 import { TurnstileWidget } from './TurnstileWidget';
+import { LgpdConsentCheckbox } from './LgpdConsentCheckbox';
 
 interface CustomerAuthModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
   const [password, setPassword] = useState('');
   const [cpf, setCpf] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
+  const [lgpdAccepted, setLgpdAccepted] = useState(true);
 
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -77,6 +79,11 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
     e.preventDefault();
     setError('');
     setSuccessMsg('');
+
+    if (!lgpdAccepted) {
+      setError('Por favor, aceite os Termos de Uso e Política de Privacidade (LGPD) para prosseguir.');
+      return;
+    }
 
     if (password.length < 8) {
       setError('A senha deve possuir no mínimo 8 caracteres.');
@@ -183,7 +190,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
             </div>
           )}
 
-          {/* Social Google Login Button (Direto, isento do Turnstile) */}
+          {/* Social Google Login Button */}
           <div className="space-y-2">
             <GoogleLoginButton
               onSuccess={handleGoogleSuccess}
@@ -231,7 +238,7 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
                 </div>
               </div>
 
-              {/* Anti-bot widget (para formulário tradicional) */}
+              {/* Anti-bot widget */}
               <TurnstileWidget
                 onVerify={handleTurnstileVerify}
                 onExpire={handleTurnstileExpire}
@@ -294,7 +301,16 @@ export const CustomerAuthModal: React.FC<CustomerAuthModalProps> = ({
                 </div>
               </div>
 
-              {/* Anti-bot widget (para formulário tradicional) */}
+              {/* Checkbox de Consentimento LGPD */}
+              <div className="pt-1">
+                <LgpdConsentCheckbox
+                  checked={lgpdAccepted}
+                  onChange={(c) => setLgpdAccepted(c)}
+                  required
+                />
+              </div>
+
+              {/* Anti-bot widget */}
               <TurnstileWidget
                 onVerify={handleTurnstileVerify}
                 onExpire={handleTurnstileExpire}

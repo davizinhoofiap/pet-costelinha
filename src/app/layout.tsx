@@ -1,5 +1,6 @@
 import './globals.css';
 import { Metadata } from 'next';
+import { CookieBanner } from '@/components/CookieBanner';
 
 export const metadata: Metadata = {
   title: 'Pet Costelinha - Loja Comercial de Rações, Areia, Gaiolas e Acessórios Pet',
@@ -20,8 +21,9 @@ export default function RootLayout({
       <head>
         <meta name="google-site-verification" content="asNcd7ayg1Scs9F2gYvZjsX_xEY7Vyk-uScRwtg6-Yc" />
       </head>
-      <body className="antialiased bg-slate-50 text-slate-900 min-h-screen">
+      <body className="antialiased bg-slate-50 text-slate-900 min-h-screen relative">
         {children}
+        <CookieBanner />
       </body>
     </html>
   );

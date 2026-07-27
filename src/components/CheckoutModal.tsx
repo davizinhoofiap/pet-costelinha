@@ -6,6 +6,7 @@ import { CartItem } from './CartDrawer';
 import { validateCPF } from '@/lib/cpf';
 import { maskCPF, maskPhone, formatCurrency } from '@/lib/masks';
 import { TurnstileWidget } from './TurnstileWidget';
+import { LgpdConsentCheckbox } from './LgpdConsentCheckbox';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [telefone, setTelefone] = useState('');
   const [endereco, setEndereco] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
+  const [lgpdAccepted, setLgpdAccepted] = useState(true);
 
   const [cpfError, setCpfError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -116,6 +118,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!lgpdAccepted) {
+      onShowToast('É necessário aceitar os Termos e Política de Privacidade (LGPD) para efetuar o pedido.', 'error');
+      return;
+    }
 
     if (!validateCPF(cpf)) {
       setCpfError('CPF com formato ou dígitos verificadores inválidos.');
@@ -399,6 +406,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     </div>
                   </button>
                 </div>
+              </div>
+
+              {/* Checkbox de Aceite LGPD */}
+              <div className="pt-1">
+                <LgpdConsentCheckbox
+                  checked={lgpdAccepted}
+                  onChange={(c) => setLgpdAccepted(c)}
+                  required
+                />
               </div>
 
               {/* Widget Anti-Bot do Cloudflare Turnstile isolado */}
