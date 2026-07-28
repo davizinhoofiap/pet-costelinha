@@ -37,13 +37,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       <div
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
+        className="absolute inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity cursor-pointer"
         onClick={onClose}
       />
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-xl flex flex-col justify-between">
-          {/* Header */}
+        <div className="w-screen max-w-md bg-white shadow-xl flex flex-col justify-between relative">
+          {/* Header com Botão X de Alta Visibilidade */}
           <div className="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-amber-400 stroke-[1.5]" />
@@ -54,10 +54,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
-              title="Fechar Carrinho"
+              className="bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-full transition-colors cursor-pointer border border-slate-700 shrink-0"
+              aria-label="Fechar"
+              title="Fechar"
             >
-              <X className="w-5 h-5 stroke-[2]" />
+              <X className="w-5 h-5 stroke-[2.5]" />
             </button>
           </div>
 
@@ -70,12 +71,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <p className="text-[11px] text-slate-400 max-w-xs">
                   Navegue pelas categorias e adicione produtos para prosseguir.
                 </p>
-                <button
-                  onClick={onClose}
-                  className="mt-2 bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"
-                >
-                  <X className="w-4 h-4" /> Fechar Janela
-                </button>
               </div>
             ) : (
               cart.map(({ product, quantity }) => {
@@ -140,7 +135,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
           {/* Summary */}
           {cart.length > 0 && (
-            <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-2.5">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-3">
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-slate-500">
                   <span>Subtotal</span>
@@ -161,24 +156,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <span>Emissão de Nota Fiscal Eletrônica (NF-e)</span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={onClose}
-                  className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
-                >
-                  <X className="w-4 h-4" /> Fechar
-                </button>
-
-                <button
-                  onClick={() => {
-                    onClose();
-                    onOpenCheckout();
-                  }}
-                  className="col-span-2 bg-slate-900 text-white hover:bg-slate-800 font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer"
-                >
-                  Checkout <ArrowRight className="w-4 h-4 stroke-[1.5]" />
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenCheckout();
+                }}
+                className="w-full bg-slate-900 text-white hover:bg-slate-800 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer"
+              >
+                Avançar para Checkout
+                <ArrowRight className="w-4 h-4 stroke-[1.5]" />
+              </button>
             </div>
           )}
         </div>
