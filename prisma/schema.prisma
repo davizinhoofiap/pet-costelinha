@@ -133,7 +133,7 @@ model Order {
   gateway_payment_id String?
   qr_code_pix        String?     @db.Text
   qr_code_base64     String?     @db.Text
-  user               User?       @relation(fields: [user_id], references: [id])
+  user               User?       @relation(fields: [user_id], references: [id], onDelete: SetNull)
   items              OrderItem[]
   created_at         DateTime    @default(now())
   updated_at         DateTime    @updatedAt

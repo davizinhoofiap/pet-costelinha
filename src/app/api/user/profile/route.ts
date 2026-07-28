@@ -63,6 +63,24 @@ export async function PUT(req: Request) {
     const body = await req.json();
     const { nome, telefone, cpf, endereco } = body;
 
+    // Trava de unicidade de Telefone no perfil
+    if (telefone && String(telefone).trim()) {
+      const cleanPhone = String(telefone).trim();
+      const existingPhoneUser = await prisma.user.findFirst({
+        where: {
+          telefone: cleanPhone,
+          NOT: { id: authUser.userId },
+        },
+      });
+
+      if (existingPhoneUser) {
+        return NextResponse.json(
+          { error: 'Este número de Telefone já está cadastrado em outra conta no sistema.' },
+          { status: 400 }
+        );
+      }
+    }
+
     // 1. Atualizar dados básicos do tutor
     const updatedUser = await prisma.user.update({
       where: { id: authUser.userId },

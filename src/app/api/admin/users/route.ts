@@ -19,6 +19,7 @@ export async function GET(req: Request) {
         nome: true,
         email: true,
         cpf: true,
+        telefone: true,
         role: true,
         created_at: true,
       },
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Acesso negado. Apenas administradores podem cadastrar usuários.' }, { status: 403 });
     }
 
-    const { nome, email, cpf, senha, role } = await req.json();
+    const { nome, email, cpf, telefone, senha, role } = await req.json();
 
     if (!nome || !email || !senha || !role) {
       return NextResponse.json({ error: 'Nome, e-mail, senha e cargo são obrigatórios' }, { status: 400 });
@@ -51,7 +52,15 @@ export async function POST(req: Request) {
     const cleanEmail = String(email).toLowerCase().trim();
     const existingUser = await prisma.user.findUnique({ where: { email: cleanEmail } });
     if (existingUser) {
-      return NextResponse.json({ error: 'Este e-mail já está cadastrado' }, { status: 400 });
+      return NextResponse.json({ error: 'Este endereço de E-mail já está cadastrado no sistema.' }, { status: 400 });
+    }
+
+    if (telefone && String(telefone).trim()) {
+      const cleanPhone = String(telefone).trim();
+      const existingPhone = await prisma.user.findFirst({ where: { telefone: cleanPhone } });
+      if (existingPhone) {
+        return NextResponse.json({ error: 'Este número de Telefone já está cadastrado no sistema.' }, { status: 400 });
+      }
     }
 
     const senha_hash = await bcrypt.hash(senha, 10);
@@ -61,6 +70,7 @@ export async function POST(req: Request) {
         nome: String(nome).trim(),
         email: cleanEmail,
         cpf: cpf ? String(cpf).trim() : null,
+        telefone: telefone ? String(telefone).trim() : null,
         senha_hash,
         role: role as Role,
       },
@@ -69,6 +79,7 @@ export async function POST(req: Request) {
         nome: true,
         email: true,
         cpf: true,
+        telefone: true,
         role: true,
         created_at: true,
       },
@@ -88,7 +99,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'Apenas administradores podem editar contas de usuários.' }, { status: 403 });
     }
 
-    const { id, nome, email, cpf, role, novaSenha } = await req.json();
+    const { id, nome, email, cpf, telefone, role, novaSenha } = await req.json();
 
     if (!id || !nome || !email || !role) {
       return NextResponse.json({ error: 'ID, Nome, E-mail e Cargo são obrigatórios' }, { status: 400 });
@@ -98,10 +109,37 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'A nova senha deve possuir no mínimo 8 caracteres.' }, { status: 400 });
     }
 
+    const cleanEmail = String(email).toLowerCase().trim();
+    const existingEmail = await prisma.user.findFirst({
+      where: {
+        email: cleanEmail,
+        NOT: { id: String(id) },
+      },
+    });
+
+    if (existingEmail) {
+      return NextResponse.json({ error: 'Este endereço de E-mail já pertence a outro usuário.' }, { status: 400 });
+    }
+
+    if (telefone && String(telefone).trim()) {
+      const cleanPhone = String(telefone).trim();
+      const existingPhone = await prisma.user.findFirst({
+        where: {
+          telefone: cleanPhone,
+          NOT: { id: String(id) },
+        },
+      });
+
+      if (existingPhone) {
+        return NextResponse.json({ error: 'Este número de Telefone já pertence a outro usuário.' }, { status: 400 });
+      }
+    }
+
     const dataToUpdate: any = {
       nome: String(nome).trim(),
-      email: String(email).toLowerCase().trim(),
+      email: cleanEmail,
       cpf: cpf ? String(cpf).trim() : null,
+      telefone: telefone ? String(telefone).trim() : null,
       role: role as Role,
     };
 
@@ -117,6 +155,7 @@ export async function PUT(req: Request) {
         nome: true,
         email: true,
         cpf: true,
+        telefone: true,
         role: true,
         created_at: true,
       },
@@ -147,9 +186,10 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Você não pode excluir a sua própria conta ativa.' }, { status: 400 });
     }
 
+    // Exclusão segura mantendo a integridade dos pedidos (user_id -> NULL em Orders)
     await prisma.user.delete({ where: { id: String(id) } });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: 'Usuário/Cliente excluído com sucesso.' });
   } catch (error) {
     console.error('Erro ao excluir usuário:', error);
     return NextResponse.json({ error: 'Erro ao excluir usuário' }, { status: 500 });
