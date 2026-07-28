@@ -1,15 +1,15 @@
 import { z } from 'zod';
 
-// Validador auxiliar de CPF (11 dígitos numéricos)
+// regex pra garantir que o CPF veio só com os 11 números sem traço ou ponto
 const cpfCleanRegex = /^\d{11}$/;
 
-// Schema para Itens de Pedido no Checkout
+// aqui a gente valida cada produto que o cliente colocou no carrinho
 export const checkoutItemSchema = z.object({
   productId: z.string().min(1, 'ID do produto é obrigatório'),
   quantidade: z.number().int().min(1, 'Quantidade deve ser maior ou igual a 1'),
 });
 
-// Schema Principal do Payload de Checkout
+// aqui fica o esquema principal de validação do checkout do pedido
 export const checkoutSchema = z.object({
   clienteNome: z.string().min(2, 'Nome do cliente deve possuir no mínimo 2 caracteres').max(100),
   clienteEmail: z.string().email('Endereço de e-mail inválido').transform((val) => val.toLowerCase().trim()),
@@ -23,14 +23,14 @@ export const checkoutSchema = z.object({
   turnstileToken: z.string().optional(),
 });
 
-// Schema para Login de Usuários
+// aqui a gente valida a tela de login dos usuários
 export const loginSchema = z.object({
   email: z.string().email('E-mail inválido').transform((val) => val.toLowerCase().trim()),
   password: z.string().min(1, 'Senha é obrigatória'),
   turnstileToken: z.string().optional(),
 });
 
-// Schema para Cadastro de Usuários / Colaboradores (Admin ou Registro)
+// aqui a gente valida a criação de novos usuários e funcionários no admin
 export const userCreateSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').max(100),
   email: z.string().email('E-mail inválido').transform((val) => val.toLowerCase().trim()),
@@ -41,7 +41,7 @@ export const userCreateSchema = z.object({
   turnstileToken: z.string().optional(),
 });
 
-// Schema para Atualização de Perfil de Usuário
+// aqui a gente valida a alteração de dados do perfil do cliente
 export const profileUpdateSchema = z.object({
   nome: z.string().min(2).max(100).optional(),
   email: z.string().email().transform((val) => val.toLowerCase().trim()).optional(),

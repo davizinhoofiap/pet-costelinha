@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   try {
     const ip = getClientIp(req);
 
-    // 1. Protection Rate Limit (Anti-DDoS & Bot Mitigation: 5 checkouts / 60s por IP)
+    // aqui a gente segura a onda se o mesmo IP tentar fazer mais de 5 compras por minuto
     const rateCheck = await checkRateLimit(`checkout:${ip}`, 5, 60);
     if (!rateCheck.success) {
       logger.warn('⚠️ Rate limit de checkout excedido', { requestId, clientIp: ip });
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    // 2. Validação Rígida & Sanitização com Zod
+    // aqui o Zod confere se o nome, CPF, e-mail e itens vieram todos certos
     const parseResult = checkoutSchema.safeParse(body);
     if (!parseResult.success) {
       const firstError = parseResult.error.issues[0]?.message || 'Dados inválidos fornecidos no pedido.';
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       turnstileToken,
     } = parseResult.data;
 
-    // 3. Validação Anti-Bot Cloudflare Turnstile
+    // se tiver o token do Turnstile, a gente valida pra garantir que não é um robô enviando
     if (turnstileToken) {
       const turnstileCheck = await verifyTurnstileToken(turnstileToken, ip);
       if (!turnstileCheck.success) {
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // 4. Consulta dos Produtos e Cálculo do Subtotal com Medição de Performance
+    // busca os produtos no banco pra calcular o preço certo e não confiar no valor que veio do front
     const productIds = items.map((i) => i.productId);
     const dbProducts = await logger.measureTime('Checkout.fetchProductsDB', async () => {
       return prisma.product.findMany({
@@ -100,12 +100,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Vincular ao perfil de Usuário existente (se houver)
+    // se o cliente já tiver uma conta cadastrada no sistema, a gente vincula o pedido a ele
     const existingUser = await prisma.user.findUnique({
       where: { email: clienteEmail },
     });
 
-    // 6. Gravar Pedido no Banco de Dados via Transação Prisma
+    // grava o pedido no banco de dados com os itens e o endereço de entrega
     const newOrder = await logger.measureTime('Checkout.createOrderDB', async () => {
       return prisma.order.create({
         data: {
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
 
     logger.info('Pedido registrado com sucesso no banco', { requestId, orderId: newOrder.id });
 
-    // 7. Processar PIX via SDK do Mercado Pago
+    // se a escolha foi PIX, a gente chama o Mercado Pago pra gerar o QR Code oficial
     let pixData: { qrCode: string; qrCodeBase64: string; paymentId: string } | null = null;
 
     if (metodoPagamento === 'PIX') {
@@ -163,11 +163,11 @@ export async function POST(req: Request) {
           orderId: newOrder.id,
           errorMessage: mpError.message || String(mpError),
         });
-        // Mantém pixData como null para que o modal utilize o fallback de chave celular se necessário
+        // se der algum pepino na API do Mercado Pago, o modal usa a chave celular como fallback
       }
     }
 
-    // 8. Disparo Assíncrono de E-mail de Confirmação (Não Bloqueante)
+    // dispara o e-mail de confirmação sem travar a resposta pro cliente
     try {
       sendOrderEmail({
         orderId: newOrder.id,

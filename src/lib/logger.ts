@@ -9,7 +9,7 @@ interface LogContext {
   [key: string]: any;
 }
 
-// Lista de palavras-chave sensíveis (PII) para mascaramento automático segundo a LGPD
+// aqui a gente define quais campos são sensíveis pra mascarar nos logs e ficar 100% de acordo com a LGPD
 const SENSITIVE_KEYS = [
   'cpf',
   'senha',
@@ -30,10 +30,7 @@ const SENSITIVE_KEYS = [
   'qrcodebase64',
 ];
 
-/**
- * Função recursiva para sanitizar/mascarar PII em objetos e arrays
- */
-
+// essa função limpa e esconde dados pessoais dentro de qualquer objeto ou lista antes de salvar o log
 export function sanitizePII(data: any): any {
   if (data === null || data === undefined) return data;
 
@@ -85,9 +82,7 @@ export function sanitizePII(data: any): any {
   return data;
 }
 
-/**
- * Logger estruturado em formato JSON para produção
- */
+// aqui fica o nosso logger estruturado em JSON pra facilitar o monitoramento em produção
 class Logger {
   private log(level: LogLevel, message: string, context?: LogContext) {
     const timestamp = new Date().toISOString();
@@ -136,9 +131,7 @@ class Logger {
     this.log('debug', message, context);
   }
 
-  /**
-   * Utilitário para medir tempo de execução (execution_time_ms) e alertar se > 500ms
-   */
+  // essa função mede quanto tempo uma busca no banco ou chamada de API demorou e avisa se passar de 500ms
   async measureTime<T>(
     operationName: string,
     fn: () => Promise<T>,

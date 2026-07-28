@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    // 1. Validação Zod & Sanitização de PII
+    // passa os dados no Zod pra garantir que o e-mail e senha vieram certinhos
     const parseResult = userCreateSchema.safeParse(body);
     if (!parseResult.success) {
       const errorMsg = parseResult.error.issues[0]?.message || 'Dados inválidos fornecidos.';
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 
     const { nome, email, cpf, telefone, senha, role } = parseResult.data;
 
-    // 2. Trava de Unicidade
+    // confere se o e-mail ou o telefone já não tão cadastrados em outra conta
     const existingEmailUser = await prisma.user.findUnique({ where: { email } });
     const existingPhoneUser = telefone ? await prisma.user.findFirst({ where: { telefone } }) : null;
 
@@ -198,9 +198,7 @@ export async function PUT(req: Request) {
   }
 }
 
-/**
- * DELETE: Exclusão Segura com Direito de Eliminação e Anonimização LGPD
- */
+// exclusão segura do cliente: esconde os dados pessoais nos pedidos antigos e apaga a conta pra respeitar a LGPD
 export async function DELETE(req: Request) {
   const requestId = req.headers.get('x-request-id') || crypto.randomUUID();
 
@@ -221,7 +219,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Você não pode excluir a sua própria conta ativa.' }, { status: 400 });
     }
 
-    // 1. Anonimização LGPD nos pedidos históricos antes de excluir o cadastro
+    // tira os dados pessoais do cliente dos pedidos antigos pra manter o histórico de vendas sem expor a pessoa
     await logger.measureTime('Admin.anonymizeUserOrdersLGPD', async () => {
       await prisma.order.updateMany({
         where: { user_id: String(id) },
@@ -236,7 +234,7 @@ export async function DELETE(req: Request) {
       });
     }, { requestId, targetUserId: id });
 
-    // 2. Hard Delete do cadastro do Usuário no banco (Conformidade Art. 18 LGPD)
+    // apaga o usuário do banco de dados definitivamente
     await logger.measureTime('Admin.deleteUserHardLGPD', async () => {
       await prisma.user.delete({ where: { id: String(id) } });
     }, { requestId, targetUserId: id });

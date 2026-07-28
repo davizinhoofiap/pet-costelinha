@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   let dbLatencyMs = 0;
   let mpStatus = 'unknown';
 
-  // 1. Verificação de Saúde do Banco de Dados (Prisma MySQL/Aiven)
+  // testa se o banco de dados tá respondendo rápido fazendo uma query simples
   try {
     const dbStart = performance.now();
     await prisma.$queryRaw`SELECT 1`;
@@ -26,13 +26,13 @@ export async function GET(req: Request) {
     });
   }
 
-  // 2. Verificação de Saúde da API do Mercado Pago
+  // testa se a API do Mercado Pago tá online mandando um ping com timeout de 3s
   try {
     const token = process.env.MERCADO_PAGO_ACCESS_TOKEN;
     if (token) {
       const mpRes = await fetch('https://api.mercadopago.com/v1/payment_methods', {
         headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(3000), // Timeout de 3s
+        signal: AbortSignal.timeout(3000),
       });
       mpStatus = mpRes.ok ? 'healthy' : `error_http_${mpRes.status}`;
     } else {
