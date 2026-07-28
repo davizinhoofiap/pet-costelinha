@@ -61,24 +61,36 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { nome, telefone, cpf, endereco } = body;
+    const { nome, email, telefone, cpf, endereco } = body;
 
-    // Trava de unicidade de Telefone no perfil
-    if (telefone && String(telefone).trim()) {
-      const cleanPhone = String(telefone).trim();
-      const existingPhoneUser = await prisma.user.findFirst({
-        where: {
-          telefone: cleanPhone,
-          NOT: { id: authUser.userId },
-        },
-      });
+    // Trava de unicidade para E-mail e Telefone no perfil
+    const cleanEmail = email && String(email).trim() ? String(email).toLowerCase().trim() : null;
+    const cleanPhone = telefone && String(telefone).trim() ? String(telefone).trim() : null;
 
-      if (existingPhoneUser) {
-        return NextResponse.json(
-          { error: 'Este número de Telefone já está cadastrado em outra conta no sistema.' },
-          { status: 400 }
-        );
-      }
+    const existingEmailUser = cleanEmail
+      ? await prisma.user.findFirst({ where: { email: cleanEmail, NOT: { id: authUser.userId } } })
+      : null;
+    const existingPhoneUser = cleanPhone
+      ? await prisma.user.findFirst({ where: { telefone: cleanPhone, NOT: { id: authUser.userId } } })
+      : null;
+
+    if (existingEmailUser && existingPhoneUser) {
+      return NextResponse.json(
+        { error: 'Este E-mail e este número de Telefone já estão cadastrados em outra conta no sistema.' },
+        { status: 400 }
+      );
+    }
+    if (existingEmailUser) {
+      return NextResponse.json(
+        { error: 'Este endereço de E-mail já está cadastrado em outra conta no sistema.' },
+        { status: 400 }
+      );
+    }
+    if (existingPhoneUser) {
+      return NextResponse.json(
+        { error: 'Este número de Telefone já está cadastrado em outra conta no sistema.' },
+        { status: 400 }
+      );
     }
 
     // 1. Atualizar dados básicos do tutor
@@ -86,7 +98,8 @@ export async function PUT(req: Request) {
       where: { id: authUser.userId },
       data: {
         nome: nome || undefined,
-        telefone: telefone || undefined,
+        email: cleanEmail || undefined,
+        telefone: cleanPhone || undefined,
         cpf: cpf || undefined,
       },
       select: {

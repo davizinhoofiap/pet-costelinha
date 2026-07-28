@@ -50,17 +50,28 @@ export async function POST(req: Request) {
     }
 
     const cleanEmail = String(email).toLowerCase().trim();
-    const existingUser = await prisma.user.findUnique({ where: { email: cleanEmail } });
-    if (existingUser) {
-      return NextResponse.json({ error: 'Este endereço de E-mail já está cadastrado no sistema.' }, { status: 400 });
-    }
+    const cleanPhone = telefone && String(telefone).trim() ? String(telefone).trim() : null;
 
-    if (telefone && String(telefone).trim()) {
-      const cleanPhone = String(telefone).trim();
-      const existingPhone = await prisma.user.findFirst({ where: { telefone: cleanPhone } });
-      if (existingPhone) {
-        return NextResponse.json({ error: 'Este número de Telefone já está cadastrado no sistema.' }, { status: 400 });
-      }
+    const existingEmailUser = await prisma.user.findUnique({ where: { email: cleanEmail } });
+    const existingPhoneUser = cleanPhone ? await prisma.user.findFirst({ where: { telefone: cleanPhone } }) : null;
+
+    if (existingEmailUser && existingPhoneUser) {
+      return NextResponse.json(
+        { error: 'Este E-mail e este número de Telefone já estão cadastrados no sistema.' },
+        { status: 400 }
+      );
+    }
+    if (existingEmailUser) {
+      return NextResponse.json(
+        { error: 'Este E-mail já está cadastrado no sistema.' },
+        { status: 400 }
+      );
+    }
+    if (existingPhoneUser) {
+      return NextResponse.json(
+        { error: 'Este número de Telefone já está cadastrado no sistema.' },
+        { status: 400 }
+      );
     }
 
     const senha_hash = await bcrypt.hash(senha, 10);
@@ -70,7 +81,7 @@ export async function POST(req: Request) {
         nome: String(nome).trim(),
         email: cleanEmail,
         cpf: cpf ? String(cpf).trim() : null,
-        telefone: telefone ? String(telefone).trim() : null,
+        telefone: cleanPhone,
         senha_hash,
         role: role as Role,
       },
@@ -110,36 +121,39 @@ export async function PUT(req: Request) {
     }
 
     const cleanEmail = String(email).toLowerCase().trim();
-    const existingEmail = await prisma.user.findFirst({
-      where: {
-        email: cleanEmail,
-        NOT: { id: String(id) },
-      },
+    const cleanPhone = telefone && String(telefone).trim() ? String(telefone).trim() : null;
+
+    const existingEmailUser = await prisma.user.findFirst({
+      where: { email: cleanEmail, NOT: { id: String(id) } },
     });
+    const existingPhoneUser = cleanPhone
+      ? await prisma.user.findFirst({ where: { telefone: cleanPhone, NOT: { id: String(id) } } })
+      : null;
 
-    if (existingEmail) {
-      return NextResponse.json({ error: 'Este endereço de E-mail já pertence a outro usuário.' }, { status: 400 });
+    if (existingEmailUser && existingPhoneUser) {
+      return NextResponse.json(
+        { error: 'Este E-mail e este número de Telefone já pertencem a outra conta no sistema.' },
+        { status: 400 }
+      );
     }
-
-    if (telefone && String(telefone).trim()) {
-      const cleanPhone = String(telefone).trim();
-      const existingPhone = await prisma.user.findFirst({
-        where: {
-          telefone: cleanPhone,
-          NOT: { id: String(id) },
-        },
-      });
-
-      if (existingPhone) {
-        return NextResponse.json({ error: 'Este número de Telefone já pertence a outro usuário.' }, { status: 400 });
-      }
+    if (existingEmailUser) {
+      return NextResponse.json(
+        { error: 'Este E-mail já está cadastrado em outra conta no sistema.' },
+        { status: 400 }
+      );
+    }
+    if (existingPhoneUser) {
+      return NextResponse.json(
+        { error: 'Este número de Telefone já está cadastrado em outra conta no sistema.' },
+        { status: 400 }
+      );
     }
 
     const dataToUpdate: any = {
       nome: String(nome).trim(),
       email: cleanEmail,
       cpf: cpf ? String(cpf).trim() : null,
-      telefone: telefone ? String(telefone).trim() : null,
+      telefone: cleanPhone,
       role: role as Role,
     };
 
@@ -186,7 +200,6 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Você não pode excluir a sua própria conta ativa.' }, { status: 400 });
     }
 
-    // Exclusão segura mantendo a integridade dos pedidos (user_id -> NULL em Orders)
     await prisma.user.delete({ where: { id: String(id) } });
 
     return NextResponse.json({ success: true, message: 'Usuário/Cliente excluído com sucesso.' });
