@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Phone, Store, User, LogOut, ShieldCheck, Dog } from 'lucide-react';
+import { ShoppingBag, Search, Phone, User, LogOut, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 interface HeaderProps {
@@ -66,10 +66,10 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Navigation Main Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
         
-        {/* Brand Logo */}
+        {/* Brand Logo com Imagem Oficial do Cachorrinho Costelinha */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 bg-orange-600 text-white rounded-2xl flex items-center justify-center font-extrabold shadow-sm group-hover:scale-105 transition-transform">
-            <Store className="w-5 h-5 stroke-[1.5]" />
+          <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center p-1 group-hover:scale-105 transition-transform border border-slate-700">
+            <img src="/logo.png" alt="Pet Costelinha" className="w-full h-full object-contain" />
           </div>
           <div>
             <span className="text-base font-extrabold tracking-tight text-white block uppercase leading-none">

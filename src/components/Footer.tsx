@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Store, Phone, MapPin, Mail, ShieldCheck, Lock, FileText } from 'lucide-react';
+import { Phone, MapPin, Mail, ShieldCheck, Lock, FileText } from 'lucide-react';
 import Link from 'next/link';
 
 export const Footer: React.FC = () => {
@@ -28,8 +28,8 @@ export const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-orange-600 text-white rounded-lg flex items-center justify-center font-bold">
-              <Store className="w-4 h-4 stroke-[1.5]" />
+            <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center p-1 border border-slate-700">
+              <img src="/logo.png" alt="Pet Costelinha" className="w-full h-full object-contain" />
             </div>
             <span className="text-sm font-bold tracking-tight text-white uppercase">
               {storeInfo.nome_loja}
