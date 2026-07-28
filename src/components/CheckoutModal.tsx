@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, Check, QrCode, Copy, MessageSquare, RefreshCw, CheckCircle2, ShieldCheck, PhoneCall, MapPin } from 'lucide-react';
+import { X, Check, QrCode, Copy, MessageSquare, RefreshCw, CheckCircle2, ShieldCheck, PhoneCall, MapPin, AlertCircle } from 'lucide-react';
 import { CartItem } from './CartDrawer';
 import { validateCPF } from '@/lib/cpf';
 import { maskCPF, maskPhone, formatCurrency } from '@/lib/masks';
@@ -49,7 +49,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [orderResult, setOrderResult] = useState<{
     orderId: string;
     total: number;
-    pix?: { qrCode: string; qrCodeBase64: string; paymentId: string };
+    pix?: { qrCode: string; qrCodeBase64: string; paymentId: string } | null;
   } | null>(null);
 
   // Snapshot permanente dos dados do pedido
@@ -179,8 +179,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setPurchasedSnapshot(snapshot);
 
       if (paymentMethod === 'PIX') {
+        if (data.pix?.qrCode) {
+          onShowToast('Código PIX do Mercado Pago gerado com sucesso!', 'success');
+        } else {
+          onShowToast('Pedido registrado com sucesso! Chave PIX oficial exibida abaixo.', 'info');
+        }
         setStep('PIX_SCREEN');
-        onShowToast('Código PIX do Mercado Pago gerado com sucesso!', 'success');
       } else {
         handleOpenWhatsAppWithSnapshot(snapshot, false);
         setStep('SUCCESS');
@@ -191,7 +195,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       console.error('❌ Erro no submit do CheckoutModal:', err);
       let msg = err.message || 'Erro de conexão com o servidor. Tente novamente.';
       if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
-        msg = 'Falha de comunicação com o servidor local. O servidor foi reiniciado, tente novamente.';
+        msg = 'Falha de comunicação com o servidor. Tente novamente.';
       }
       onShowToast(msg, 'error');
     } finally {
@@ -199,13 +203,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
+  const pixCodeToCopy = orderResult?.pix?.qrCode || 'petcostelinha2021@gmail.com';
+
   const handleCopyPix = () => {
-    if (orderResult?.pix?.qrCode) {
-      navigator.clipboard.writeText(orderResult.pix.qrCode);
-      setCopiedPix(true);
-      onShowToast('Chave Copia e Cola do Mercado Pago copiada!', 'success');
-      setTimeout(() => setCopiedPix(false), 2500);
-    }
+    navigator.clipboard.writeText(pixCodeToCopy);
+    setCopiedPix(true);
+    onShowToast('Chave PIX copiada com sucesso!', 'success');
+    setTimeout(() => setCopiedPix(false), 2500);
   };
 
   const handleOpenWhatsAppWithSnapshot = (
@@ -444,13 +448,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </form>
           )}
 
-          {/* STEP 2: PIX SCREEN */}
-          {step === 'PIX_SCREEN' && orderResult?.pix && (
+          {/* STEP 2: PIX SCREEN (Resiliente e Sem Tela Branca) */}
+          {step === 'PIX_SCREEN' && (
             <div className="space-y-5 text-center">
               <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-left flex justify-between items-center text-xs">
                 <div>
-                  <p className="text-slate-500 font-medium">Pedido #{orderResult.orderId.slice(0, 8)}</p>
-                  <p className="font-bold text-slate-900 text-sm">{formatCurrency(orderResult.total)}</p>
+                  <p className="text-slate-500 font-medium">
+                    Pedido #{orderResult?.orderId ? orderResult.orderId.slice(0, 8) : '000000'}
+                  </p>
+                  <p className="font-bold text-slate-900 text-sm">
+                    {formatCurrency(orderResult?.total || totalValor)}
+                  </p>
                 </div>
                 <span className="bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-bold px-3 py-1 rounded-md flex items-center gap-1.5 animate-pulse">
                   <RefreshCw className="w-3 h-3 animate-spin text-amber-700 stroke-[2]" />
@@ -458,34 +466,44 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </span>
               </div>
 
+              {/* Exibição do QR Code se disponível ou Fallback Oficial */}
               <div className="flex flex-col items-center justify-center space-y-2">
                 <div className="p-3.5 bg-white border-2 border-slate-200 rounded-2xl shadow-sm inline-block">
-                  <img
-                    src={orderResult.pix.qrCodeBase64}
-                    alt="QR Code PIX Mercado Pago"
-                    className="w-48 h-48 object-contain"
-                  />
+                  {orderResult?.pix?.qrCodeBase64 ? (
+                    <img
+                      src={orderResult.pix.qrCodeBase64}
+                      alt="QR Code PIX Mercado Pago"
+                      className="w-48 h-48 object-contain"
+                    />
+                  ) : (
+                    <div className="w-48 h-48 bg-slate-50 border border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center p-3 text-center space-y-2">
+                      <QrCode className="w-12 h-12 text-orange-600 stroke-[1.5]" />
+                      <span className="text-[11px] font-bold text-slate-800">Chave PIX Oficial Pet Costelinha</span>
+                      <span className="text-[10px] text-slate-500 font-mono">petcostelinha2021@gmail.com</span>
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-slate-600 max-w-xs leading-relaxed">
-                  Abra o app do seu banco e escaneie o código QR acima. A confirmação é <strong>automática e instantânea</strong>.
+                  Abra o aplicativo do seu banco e escaneie o código QR acima ou copie a chave oficial abaixo.
                 </p>
               </div>
 
+              {/* Chave Copia e Cola */}
               <div className="space-y-2 text-left bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                  Código PIX Copia e Cola Oficial:
+                  {orderResult?.pix?.qrCode ? 'Código PIX Copia e Cola Oficial:' : 'Chave PIX Oficial da Loja:'}
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     readOnly
-                    value={orderResult.pix.qrCode}
+                    value={pixCodeToCopy}
                     className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 truncate focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={handleCopyPix}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 transition-all shadow-xs active:scale-98 ${
+                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 transition-all shadow-xs active:scale-98 cursor-pointer ${
                       copiedPix
                         ? 'bg-emerald-600 text-white'
                         : 'bg-slate-900 hover:bg-slate-800 text-white'
@@ -497,16 +515,30 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       </>
                     ) : (
                       <>
-                        <Copy className="w-4 h-4 stroke-[1.5]" /> Copiar Código PIX
+                        <Copy className="w-4 h-4 stroke-[1.5]" /> Copiar PIX
                       </>
                     )}
                   </button>
                 </div>
               </div>
 
+              <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center justify-between text-xs">
+                <div className="text-left space-y-0.5">
+                  <span className="font-bold text-emerald-950">Enviar comprovante pelo WhatsApp</span>
+                  <p className="text-[11px] text-emerald-800">Acelere o envio do seu pedido</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleOpenWhatsAppWithSnapshot(purchasedSnapshot, false)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-lg text-xs flex items-center gap-1.5 shrink-0"
+                >
+                  <PhoneCall className="w-3.5 h-3.5" /> WhatsApp
+                </button>
+              </div>
+
               <div className="text-[11px] text-slate-400 font-mono flex items-center justify-center gap-1.5 pt-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-500 stroke-[1.5]" />
-                Verificando confirmação do banco em tempo real (Polling 3s)...
+                Verificando confirmação em tempo real...
               </div>
             </div>
           )}
