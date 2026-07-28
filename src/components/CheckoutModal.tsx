@@ -45,7 +45,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setTurnstileToken('');
   }, []);
 
-  // Armazena a resposta da API do Mercado Pago
+  // 1. Estado React dedicado para os dados dinâmicos do PIX (qrCode e qrCodeBase64)
+  const [pixData, setPixData] = useState<{
+    qrCode: string;
+    qrCodeBase64: string;
+    paymentId?: string;
+  } | null>(null);
+
+  // Armazena a resposta da API de pedidos
   const [orderResult, setOrderResult] = useState<{
     orderId: string;
     total: number;
@@ -178,6 +185,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setOrderResult(data);
       setPurchasedSnapshot(snapshot);
 
+      // Salvamento dinâmico dos dados do Pix no estado React (Requisito 1)
+      if (data.pix && (data.pix.qrCode || data.pix.qrCodeBase64)) {
+        setPixData({
+          qrCode: data.pix.qrCode,
+          qrCodeBase64: data.pix.qrCodeBase64,
+          paymentId: data.pix.paymentId,
+        });
+      } else {
+        setPixData(null);
+      }
+
       if (paymentMethod === 'PIX') {
         if (data.pix?.qrCode) {
           onShowToast('Código PIX do Mercado Pago gerado com sucesso!', 'success');
@@ -203,13 +221,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
-  const hasMercadoPagoPix = Boolean(orderResult?.pix?.qrCode && orderResult?.pix?.qrCodeBase64);
-  const pixCodeToCopy = hasMercadoPagoPix ? orderResult!.pix!.qrCode : '11982441326';
+  // Código Copia e Cola dinâmico do Mercado Pago (ou fallback de celular)
+  const codeToCopy = pixData?.qrCode || '11982441326';
 
   const handleCopyPix = () => {
-    navigator.clipboard.writeText(pixCodeToCopy);
+    navigator.clipboard.writeText(codeToCopy);
     setCopiedPix(true);
-    onShowToast('Chave PIX copiada com sucesso!', 'success');
+    onShowToast('Código PIX copiado com sucesso!', 'success');
     setTimeout(() => setCopiedPix(false), 2500);
   };
 
@@ -467,13 +485,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </span>
               </div>
 
-              {/* Exibição Exclusiva do QR Code do Mercado Pago se Carregado, OU Fallback de Celular 11982441326 */}
+              {/* Requisito 2: Renderização da Imagem do QR Code Dinâmica via <img> em Base64 */}
               <div className="flex flex-col items-center justify-center space-y-2">
                 <div className="p-3.5 bg-white border-2 border-slate-200 rounded-2xl shadow-sm inline-block">
-                  {hasMercadoPagoPix ? (
+                  {pixData?.qrCodeBase64 ? (
                     <img
-                      src={orderResult!.pix!.qrCodeBase64}
-                      alt="QR Code PIX Mercado Pago"
+                      src={pixData.qrCodeBase64}
+                      alt="QR Code Pix Mercado Pago"
                       className="w-48 h-48 object-contain"
                     />
                   ) : (
@@ -485,22 +503,22 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   )}
                 </div>
                 <p className="text-xs text-slate-600 max-w-xs leading-relaxed">
-                  {hasMercadoPagoPix
+                  {pixData?.qrCodeBase64
                     ? 'Abra o aplicativo do seu banco e escaneie o código QR acima para pagamento instantâneo.'
                     : 'Copie a chave PIX (Celular) abaixo e realize a transferência pelo app do seu banco.'}
                 </p>
               </div>
 
-              {/* Chave Copia e Cola */}
+              {/* Requisito 3: Input do Copia e Cola Dinâmico retornado pela API */}
               <div className="space-y-2 text-left bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                  {hasMercadoPagoPix ? 'Código PIX Copia e Cola Oficial:' : 'Chave PIX Oficial (Celular):'}
+                  {pixData?.qrCode ? 'Código PIX Copia e Cola Oficial:' : 'Chave PIX Oficial (Celular):'}
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     readOnly
-                    value={pixCodeToCopy}
+                    value={codeToCopy}
                     className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 truncate focus:outline-none"
                   />
                   <button
