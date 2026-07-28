@@ -59,6 +59,21 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setTurnstileToken('');
   }, []);
 
+  // Fechar com a tecla ESC
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   // Estado React dedicado para os dados dinâmicos do PIX
   const [pixData, setPixData] = useState<{
     qrCode: string;
@@ -357,39 +372,43 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 box-border">
-      {/* Backdrop clicavel para fechar */}
+    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 box-border">
+      {/* Backdrop clicável absoluto para fechar */}
       <div
-        className="absolute inset-0 bg-transparent cursor-pointer"
+        className="fixed inset-0 bg-transparent cursor-pointer z-[9999]"
         onClick={(e) => {
           e.stopPropagation();
           onClose();
         }}
       />
 
-      <div className="bg-white w-full max-w-lg max-h-[92vh] rounded-2xl shadow-2xl overflow-y-auto border border-slate-200 relative my-auto font-sans box-border max-w-full z-10">
-        {/* Header Fixo com Botao X de Alta Visibilidade no Canto Superior Direito */}
-        <div className="bg-slate-900 text-white p-3.5 pr-14 flex items-center justify-between border-b border-slate-800 sticky top-0 z-40">
+      {/* Container Principal do Modal com z-index alto e rolagem interna garantida */}
+      <div className="relative z-[10000] w-full max-w-lg max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-y-auto border border-slate-300 font-sans box-border my-auto">
+        
+        {/* Botão X Flutuante Absoluto (Laranja Chamativo, Nível z-[10001] Inamovível) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+          }}
+          className="sticky top-3 right-3 float-right z-[10001] bg-orange-600 hover:bg-orange-500 text-white p-2.5 rounded-full shadow-2xl transition-transform hover:scale-110 cursor-pointer border-2 border-white flex items-center justify-center -mb-12 mr-3"
+          aria-label="Fechar Modal"
+          title="Fechar"
+        >
+          <X className="w-5 h-5 stroke-[3]" />
+        </button>
+
+        {/* Header Escuro Pinned */}
+        <div className="bg-slate-900 text-white p-3.5 pr-16 flex items-center justify-between border-b border-slate-800 sticky top-0 z-[10000]">
           <div>
             <h2 className="text-xs font-bold text-white uppercase tracking-wider">Finalizar Pedido de Compra</h2>
             <p className="text-[10px] text-slate-400">Identificação para nota fiscal e entrega</p>
           </div>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="absolute top-2.5 right-2.5 bg-orange-600 hover:bg-orange-500 text-white p-2 rounded-full shadow-lg transition-transform hover:scale-110 cursor-pointer border-2 border-white flex items-center justify-center z-50"
-            aria-label="Fechar Modal"
-            title="Fechar"
-          >
-            <X className="w-5 h-5 stroke-[3]" />
-          </button>
         </div>
 
-        {/* Body Fluido com Scroll Interno Garantido */}
+        {/* Body Fluido */}
         <div className="p-4 sm:p-5 space-y-3 max-w-full">
           {step === 'FORM' && (
             <form onSubmit={handleSubmitOrder} className="space-y-3 text-xs">
