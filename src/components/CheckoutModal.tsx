@@ -362,28 +362,30 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       <div className="fixed inset-0" onClick={onClose} />
 
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-slate-200 relative my-4 font-sans box-border max-w-full z-10">
-        {/* Header com Botão X Destacado */}
-        <div className="bg-slate-900 text-white p-3.5 flex items-center justify-between border-b border-slate-800">
+        {/* Botão X Flutuante de Alta Visibilidade (Exatamente onde apontado na foto) */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-2.5 right-2.5 z-50 bg-slate-900 hover:bg-slate-800 text-white p-2 rounded-full shadow-lg transition-transform hover:scale-105 cursor-pointer border-2 border-white flex items-center justify-center"
+          aria-label="Fechar Modal"
+          title="Fechar"
+        >
+          <X className="w-5 h-5 stroke-[3]" />
+        </button>
+
+        {/* Header Compacto */}
+        <div className="bg-slate-900 text-white p-3.5 pr-14 flex items-center justify-between border-b border-slate-800">
           <div>
             <h2 className="text-xs font-bold text-white uppercase tracking-wider">Finalizar Pedido de Compra</h2>
             <p className="text-[10px] text-slate-400">Identificação para nota fiscal e entrega</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-full transition-colors cursor-pointer border border-slate-700 shrink-0"
-            aria-label="Fechar"
-            title="Fechar"
-          >
-            <X className="w-5 h-5 stroke-[2.5]" />
-          </button>
         </div>
 
         {/* Body Enxuto */}
-        <div className="p-4 sm:p-5 space-y-3 max-w-full overflow-x-hidden">
+        <div className="p-4 sm:p-5 space-y-3 max-w-full overflow-x-hidden pt-3">
           {step === 'FORM' && (
             <form onSubmit={handleSubmitOrder} className="space-y-3 text-xs">
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex justify-between items-center text-xs">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 pr-12 flex justify-between items-center text-xs">
                 <span className="text-slate-600 font-medium">
                   Subtotal ({cart.reduce((a, b) => a + b.quantity, 0)} itens)
                 </span>
