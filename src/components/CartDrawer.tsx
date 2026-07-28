@@ -54,21 +54,28 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1 text-slate-400 hover:text-white transition-colors"
+              className="p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              title="Fechar Carrinho"
             >
-              <X className="w-5 h-5 stroke-[1.5]" />
+              <X className="w-5 h-5 stroke-[2]" />
             </button>
           </div>
 
           {/* List */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {cart.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 py-12 space-y-2">
-                <ShoppingBag className="w-10 h-10 text-slate-300 stroke-[1.5]" />
+              <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 py-12 space-y-3">
+                <ShoppingBag className="w-12 h-12 text-slate-300 stroke-[1.5]" />
                 <p className="font-semibold text-xs text-slate-700">Seu carrinho está vazio</p>
                 <p className="text-[11px] text-slate-400 max-w-xs">
                   Navegue pelas categorias e adicione produtos para prosseguir.
                 </p>
+                <button
+                  onClick={onClose}
+                  className="mt-2 bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <X className="w-4 h-4" /> Fechar Janela
+                </button>
               </div>
             ) : (
               cart.map(({ product, quantity }) => {
@@ -98,7 +105,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2 py-0.5">
                           <button
                             onClick={() => onUpdateQuantity(product.id, quantity - 1)}
-                            className="p-0.5 text-slate-500 hover:text-slate-900"
+                            className="p-0.5 text-slate-500 hover:text-slate-900 cursor-pointer"
                           >
                             <Minus className="w-3 h-3 stroke-[1.5]" />
                           </button>
@@ -107,7 +114,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           </span>
                           <button
                             onClick={() => onUpdateQuantity(product.id, quantity + 1)}
-                            className="p-0.5 text-slate-500 hover:text-slate-900"
+                            className="p-0.5 text-slate-500 hover:text-slate-900 cursor-pointer"
                           >
                             <Plus className="w-3 h-3 stroke-[1.5]" />
                           </button>
@@ -121,7 +128,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                     <button
                       onClick={() => onRemoveItem(product.id)}
-                      className="absolute top-2.5 right-2.5 text-slate-400 hover:text-rose-600 transition-colors"
+                      className="absolute top-2.5 right-2.5 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4 stroke-[1.5]" />
                     </button>
@@ -133,7 +140,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
           {/* Summary */}
           {cart.length > 0 && (
-            <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-3">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-2.5">
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-slate-500">
                   <span>Subtotal</span>
@@ -154,16 +161,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <span>Emissão de Nota Fiscal Eletrônica (NF-e)</span>
               </div>
 
-              <button
-                onClick={() => {
-                  onClose();
-                  onOpenCheckout();
-                }}
-                className="w-full bg-slate-900 text-white hover:bg-slate-800 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
-              >
-                Avançar para Checkout
-                <ArrowRight className="w-4 h-4 stroke-[1.5]" />
-              </button>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={onClose}
+                  className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                >
+                  <X className="w-4 h-4" /> Fechar
+                </button>
+
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenCheckout();
+                  }}
+                  className="col-span-2 bg-slate-900 text-white hover:bg-slate-800 font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer"
+                >
+                  Checkout <ArrowRight className="w-4 h-4 stroke-[1.5]" />
+                </button>
+              </div>
             </div>
           )}
         </div>

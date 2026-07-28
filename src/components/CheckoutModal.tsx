@@ -32,7 +32,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [cpf, setCpf] = useState('');
   const [telefone, setTelefone] = useState('');
 
-  // Estrutura de Endereço Detalhada (Requisito 2)
+  // Estrutura de Endereço Detalhada
   const [cep, setCep] = useState('');
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
@@ -48,7 +48,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [cpfError, setCpfError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Reference para foco automático no campo Número (Requisito 1)
+  // Reference para foco automático no campo Número
   const numeroInputRef = useRef<HTMLInputElement>(null);
 
   const handleTurnstileVerify = useCallback((token: string) => {
@@ -87,7 +87,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const [copiedPix, setCopiedPix] = useState(false);
 
-  // Pré-preenchimento automático para usuários autenticados (Requisito 3)
+  // Pré-preenchimento automático para usuários autenticados
   useEffect(() => {
     if (isOpen) {
       fetch('/api/user/profile')
@@ -115,7 +115,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   }, [isOpen]);
 
-  // Consulta Automática ViaCEP ao digitar 8 números (Requisito 1)
+  // Consulta Automática ViaCEP ao digitar 8 números
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
     const masked = maskCEP(rawValue);
@@ -134,7 +134,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             setCidade(data.localidade || '');
             setEstado(data.uf || '');
             onShowToast('Endereço localizado via CEP!', 'success');
-            // Mover o foco para o campo Número (Requisito 1)
             setTimeout(() => {
               numeroInputRef.current?.focus();
             }, 100);
@@ -360,14 +359,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 box-border">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-slate-200 relative my-4 font-sans box-border max-w-full">
-        {/* Header Compacto */}
+        {/* Header Compacto com Botão X Fechar */}
         <div className="bg-slate-900 text-white p-3.5 flex items-center justify-between border-b border-slate-800">
           <div>
             <h2 className="text-xs font-bold text-white uppercase tracking-wider">Finalizar Pedido de Compra</h2>
             <p className="text-[10px] text-slate-400">Identificação para nota fiscal e entrega</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1">
-            <X className="w-4 h-4 stroke-[1.5]" />
+          <button onClick={onClose} className="text-slate-400 hover:text-white p-1 cursor-pointer" title="Fechar Janela">
+            <X className="w-5 h-5 stroke-[2]" />
           </button>
         </div>
 
@@ -623,19 +622,30 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 onExpire={handleTurnstileExpire}
               />
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl shadow-xs transition-colors text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer mt-1"
-              >
-                {loading ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin stroke-[1.5]" /> Processando Checkout...
-                  </>
-                ) : (
-                  <>Finalizar e Pagar {formatCurrency(totalValor)}</>
-                )}
-              </button>
+              {/* Dupla de botões inferiores: Fechar e Finalizar */}
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-slate-200"
+                >
+                  <X className="w-4 h-4" /> Fechar
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="col-span-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl shadow-xs transition-colors text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin stroke-[1.5]" /> Processando...
+                    </>
+                  ) : (
+                    <>Finalizar e Pagar {formatCurrency(totalValor)}</>
+                  )}
+                </button>
+              </div>
             </form>
           )}
 
@@ -729,6 +739,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </button>
               </div>
 
+              {/* Botão Fechar Modal na tela PIX */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider shadow-xs"
+                >
+                  <X className="w-4 h-4" /> Fechar Janela do PIX
+                </button>
+              </div>
+
               <div className="text-[10px] text-slate-400 font-mono flex items-center justify-center gap-1 pt-0.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 stroke-[1.5]" />
                 Verificando confirmação em tempo real...
@@ -813,9 +834,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     onClose();
                     setStep('FORM');
                   }}
-                  className="bg-slate-900 text-white hover:bg-slate-800 font-extrabold px-5 py-2 rounded-xl text-xs uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
+                  className="bg-slate-900 text-white hover:bg-slate-800 font-extrabold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
                 >
-                  Concluir e Retornar à Loja
+                  Concluir e Fechar
                 </button>
               </div>
             </div>
