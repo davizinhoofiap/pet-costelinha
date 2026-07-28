@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
-import { Hero3DFlip } from '@/components/Hero3DFlip';
-import { ManifestoScroll } from '@/components/ManifestoScroll';
-import { JourneyScroll } from '@/components/JourneyScroll';
+import { HeroBanner } from '@/components/HeroBanner';
 import { CategoryFilter } from '@/components/CategoryFilter';
 import { ProductCard, ProductType } from '@/components/ProductCard';
 import { ProductDetailsModal } from '@/components/ProductDetailsModal';
@@ -15,7 +13,7 @@ import { ServicesSection } from '@/components/ServicesSection';
 import { Footer } from '@/components/Footer';
 import { ProductCardSkeleton } from '@/components/ui/Skeleton';
 import { Toast, ToastProps } from '@/components/ui/Toast';
-import { PackageX, ChevronDown } from 'lucide-react';
+import { PackageX, ChevronDown, Sparkles } from 'lucide-react';
 
 export default function StorefrontHomePage() {
   const [products, setProducts] = useState<ProductType[]>([]);
@@ -189,7 +187,7 @@ export default function StorefrontHomePage() {
   const totalCartItemsCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans text-slate-900">
+    <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900">
       {/* Toast Notifications */}
       <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-auto">
         {toasts.map((toast) => (
@@ -197,7 +195,7 @@ export default function StorefrontHomePage() {
         ))}
       </div>
 
-      {/* Header Bar */}
+      {/* HEADER PRINCIPAL ESTILO FIGMA */}
       <Header
         cartCount={totalCartItemsCount}
         onOpenCart={() => setIsCartOpen(true)}
@@ -212,94 +210,87 @@ export default function StorefrontHomePage() {
       />
 
       <main className="flex-1">
-        {/* SEÇÃO 1: HERO 3D CARD FLIP */}
-        <Hero3DFlip />
+        {/* SEÇÃO 1: HERO BANNER (FIGMA SPLIT GRID) */}
+        <HeroBanner />
 
-        {/* SEÇÃO 2: MANIFESTO & CUIDADO */}
-        <ManifestoScroll />
+        {/* SEÇÃO 2: FILTRO DE CATEGORIAS (FIGMA PILLS CARDS) */}
+        <CategoryFilter
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={(cat) => {
+            setSelectedCategory(cat);
+            setVisibleLimit(8);
+          }}
+        />
 
-        {/* SEÇÃO 3: JORNADA DO CLIENTE */}
-        <JourneyScroll />
-
-        {/* SEÇÃO 4: CATÁLOGO DE PRODUTOS */}
-        <div id="catalogo" className="pt-10">
-          <CategoryFilter
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={(cat) => {
-              setSelectedCategory(cat);
-              setVisibleLimit(8);
-            }}
-          />
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <span className="text-[10px] font-mono tracking-widest text-orange-600 uppercase block font-semibold">
-                  [ PRODUTOS DA LOJA FISICA E ONLINE ]
-                </span>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                  Catálogo Oficial ({filteredProducts.length})
-                </h2>
-              </div>
+        {/* SEÇÃO 3: GRADE DE PRODUTOS DESTACADOS (FIGMA PRODUCT GRID) */}
+        <div id="catalogo" className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+            <div>
+              <span className="text-[10px] font-black tracking-widest text-amber-600 uppercase flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" /> Produtos Selecionados
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                Produtos Recomendados para seu Pet ({filteredProducts.length})
+              </h2>
             </div>
+          </div>
 
-            {loading ? (
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-12 text-center text-slate-500 my-6 space-y-3 shadow-xs">
+              <PackageX className="w-12 h-12 text-slate-400 mx-auto stroke-[1.5]" />
+              <h3 className="font-extrabold text-slate-800 text-base">Nenhum produto localizado</h3>
+              <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                Não encontramos itens correspondentes à sua busca. Tente buscar por outros termos ou limpar os filtros.
+              </p>
+              <button
+                onClick={() => {
+                  setSelectedCategory('');
+                  setSearchTerm('');
+                  setVisibleLimit(8);
+                }}
+                className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Limpar Filtros
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Grade de Produtos Estilo Figma */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {[...Array(8)].map((_, i) => (
-                  <ProductCardSkeleton key={i} />
+                {displayedProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={(p) => handleAddToCart(p, 1)}
+                    onOpenDetails={handleOpenDetails}
+                  />
                 ))}
               </div>
-            ) : filteredProducts.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-slate-200/80 p-12 text-center text-slate-500 my-6 space-y-2">
-                <PackageX className="w-10 h-10 text-slate-400 mx-auto stroke-[1.5]" />
-                <h3 className="font-bold text-slate-800 text-sm">Nenhum produto localizado</h3>
-                <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                  Não encontramos itens correspondentes à busca. Tente buscar por outros termos.
-                </p>
-                <button
-                  onClick={() => {
-                    setSelectedCategory('');
-                    setSearchTerm('');
-                    setVisibleLimit(8);
-                  }}
-                  className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors"
-                >
-                  Limpar Filtros
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {/* Grade de Produtos */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {displayedProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onAddToCart={(p) => handleAddToCart(p, 1)}
-                      onOpenDetails={handleOpenDetails}
-                    />
-                  ))}
-                </div>
 
-                {/* BOTÃO PROEMINENTE "VEJA MAIS PRODUTOS" */}
-                {hasMoreProducts && (
-                  <div className="text-center pt-4">
-                    <button
-                      onClick={() => setVisibleLimit((prev) => prev + 12)}
-                      className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider px-8 py-3.5 rounded-2xl shadow-md transition-all active:scale-98 cursor-pointer"
-                    >
-                      Veja Mais Produtos (+{filteredProducts.length - displayedProducts.length})
-                      <ChevronDown className="w-4 h-4 text-orange-400 stroke-[2]" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+              {/* BOTÃO PROEMINENTE "VEJA MAIS PRODUTOS" */}
+              {hasMoreProducts && (
+                <div className="text-center pt-6">
+                  <button
+                    onClick={() => setVisibleLimit((prev) => prev + 12)}
+                    className="inline-flex items-center gap-2 bg-emerald-950 hover:bg-emerald-900 text-amber-400 font-black text-xs uppercase tracking-wider px-8 py-3.5 rounded-2xl shadow-md transition-all active:scale-98 cursor-pointer border border-amber-400/30"
+                  >
+                    Veja Mais Produtos (+{filteredProducts.length - displayedProducts.length})
+                    <ChevronDown className="w-4 h-4 text-amber-400 stroke-[2.5]" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* SEÇÃO 5: SERVIÇOS & INFORMAÇÕES DA LOJA */}
+        {/* SEÇÃO 4: DIFERENCIAIS E SERVIÇOS (FIGMA BENEFIT CARDS) */}
         <ServicesSection />
       </main>
 
@@ -340,7 +331,7 @@ export default function StorefrontHomePage() {
         }}
       />
 
-      {/* Footer */}
+      {/* RODAPÉ E-COMMERCE ESTILO FIGMA */}
       <Footer />
     </div>
   );

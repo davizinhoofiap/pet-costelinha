@@ -42,19 +42,22 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-emerald-950/95 backdrop-blur-md text-white border-b border-emerald-900/80 shadow-lg font-sans">
-      {/* Top Banner Status */}
+      {/* 1. TOP BAR ANNOUNCEMENT (FIGMA TEMPLATE) */}
       <div className="bg-emerald-900/90 text-emerald-100 text-[11px] py-1.5 px-4 font-mono border-b border-emerald-800/80">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="bg-amber-500 text-emerald-950 font-black px-2 py-0.5 rounded text-[9px] uppercase tracking-wider">
-              Farmácia & Petshop Oficial
+              Frete Grátis
             </span>
             <span className="hidden sm:inline text-emerald-200 font-sans text-xs">
-              Rações Magnus, Special Dog, Areias Higiênicas, Gaiolas e Medicamentos
+              Entrega rápida de rações, medicamentos e acessórios em seu bairro!
             </span>
           </div>
 
-          <div className="flex items-center gap-3 text-emerald-200 font-semibold text-xs">
+          <div className="flex items-center gap-4 text-emerald-200 font-semibold text-xs">
+            <span className="hidden md:flex items-center gap-1">
+              <HeartPulse className="w-3.5 h-3.5 text-amber-400" /> Atendimento Especializado
+            </span>
             <span className="flex items-center gap-1">
               <Phone className="w-3.5 h-3.5 text-amber-400 stroke-[2]" />
               {storePhone}
@@ -63,8 +66,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Navigation Main Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
+      {/* 2. MAIN NAVIGATION NAVBAR (FIGMA TEMPLATE) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-6">
         
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3 group shrink-0">
@@ -76,16 +79,32 @@ export const Header: React.FC<HeaderProps> = ({
               {storeName}
             </span>
             <span className="text-[10px] font-extrabold text-amber-400 tracking-widest uppercase block mt-0.5">
-              Cuidado & Nutrição Pet
+              Petshop & Farmácia
             </span>
           </div>
         </Link>
 
+        {/* Links de Navegação estilo Figma */}
+        <nav className="hidden lg:flex items-center gap-6 text-xs font-bold text-emerald-100 uppercase tracking-wider">
+          <Link href="/" className="hover:text-amber-400 transition-colors">
+            Início
+          </Link>
+          <a href="#catalogo" className="hover:text-amber-400 transition-colors">
+            Catálogo
+          </a>
+          <a href="#servicos" className="hover:text-amber-400 transition-colors">
+            Serviços
+          </a>
+          <a href="#contato" className="hover:text-amber-400 transition-colors">
+            Contato
+          </a>
+        </nav>
+
         {/* Search Bar */}
-        <div className="flex-1 max-w-md hidden md:block relative">
+        <div className="flex-1 max-w-sm hidden md:block relative">
           <input
             type="text"
-            placeholder="Buscar medicamentos, rações premium e cuidados..."
+            placeholder="Buscar medicamentos, rações premium..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full bg-emerald-900/60 border border-emerald-800/90 rounded-2xl pl-10 pr-4 py-2 text-xs text-white placeholder-emerald-300/70 focus:bg-emerald-900 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors shadow-inner"
@@ -94,8 +113,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* User Actions & Cart */}
-        <div className="flex items-center gap-2.5">
-          {/* User Auth Section */}
+        <div className="flex items-center gap-3 shrink-0">
           {currentUser ? (
             <div className="flex items-center gap-2">
               <Link
@@ -104,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title="Acessar Meu Perfil e Pets"
               >
                 <User className="w-3.5 h-3.5 text-amber-400 stroke-[2.5]" />
-                <span className="font-bold text-white max-w-[120px] truncate">{currentUser.nome}</span>
+                <span className="font-bold text-white max-w-[100px] truncate">{currentUser.nome}</span>
                 {isAdminOrStaff && (
                   <span className="bg-amber-400 text-emerald-950 font-mono text-[9px] font-black px-1.5 py-0.5 rounded">
                     {currentUser.role}
@@ -139,15 +157,15 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Cart Button */}
+          {/* Cart Button estilo Figma */}
           <button
             onClick={onOpenCart}
-            className="relative bg-orange-600 hover:bg-orange-500 text-white font-black px-4 py-2 rounded-2xl text-xs flex items-center gap-2 transition-all shadow-md hover:shadow-orange-600/30 active:scale-95 cursor-pointer uppercase tracking-wider"
+            className="relative bg-orange-600 hover:bg-orange-500 text-white font-black px-4 py-2.5 rounded-2xl text-xs flex items-center gap-2 transition-all shadow-md hover:shadow-orange-600/30 active:scale-95 cursor-pointer uppercase tracking-wider"
           >
             <ShoppingBag className="w-4 h-4 stroke-[2.5]" />
-            <span className="hidden sm:inline">Meu Carrinho</span>
+            <span className="hidden sm:inline">Carrinho</span>
             {cartCount > 0 && (
-              <span className="bg-amber-400 text-emerald-950 text-[11px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-xs animate-bounce">
+              <span className="bg-amber-400 text-emerald-950 text-[11px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-xs">
                 {cartCount}
               </span>
             )}
