@@ -17,47 +17,39 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   const getIcon = (slug: string) => {
     switch (slug) {
       case 'racoes-caes-gatos':
-        return <Bone className="w-4 h-4 stroke-[2]" />;
+        return <Bone className="w-3.5 h-3.5 stroke-[1.5]" />;
       case 'racoes-passaros':
-        return <Feather className="w-4 h-4 stroke-[2]" />;
+        return <Feather className="w-3.5 h-3.5 stroke-[1.5]" />;
       case 'medicamentos-vermifugos':
-        return <Pill className="w-4 h-4 stroke-[2]" />;
+        return <Pill className="w-3.5 h-3.5 stroke-[1.5]" />;
       case 'pulgas-carrapatos':
-        return <ShieldAlert className="w-4 h-4 stroke-[2]" />;
+        return <ShieldAlert className="w-3.5 h-3.5 stroke-[1.5]" />;
       case 'acessorios-brinquedos':
-        return <ShoppingBag className="w-4 h-4 stroke-[2]" />;
+        return <ShoppingBag className="w-3.5 h-3.5 stroke-[1.5]" />;
       default:
-        return <Grid className="w-4 h-4 stroke-[2]" />;
+        return <Grid className="w-3.5 h-3.5 stroke-[1.5]" />;
     }
   };
 
   return (
-    <section className="my-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-        <div>
-          <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest block">
-            Navegue por Departamento
-          </span>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            Categorias de Produtos
-          </h2>
-        </div>
-        <span className="text-xs text-slate-500 font-semibold">
-          Selecione uma categoria para filtrar o catálogo
-        </span>
+    <div className="my-6 px-4 sm:px-6 lg:px-8">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+          Categorias de Produtos
+        </h2>
+        <span className="text-[11px] text-slate-500 font-normal">Filtre por departamento</span>
       </div>
 
-      {/* Grade de Categorias em Estilo Figma Pill Cards */}
-      <div className="flex items-center gap-2.5 overflow-x-auto pb-3 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         <button
           onClick={() => onSelectCategory('')}
-          className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-200 border cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all border ${
             selectedCategory === ''
-              ? 'bg-emerald-950 text-amber-400 border-emerald-950 shadow-md scale-102'
-              : 'bg-white text-slate-700 border-slate-200/90 hover:border-amber-400 hover:bg-amber-50/40 shadow-2xs'
+              ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+              : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
           }`}
         >
-          <Grid className="w-4 h-4 stroke-[2]" /> Todos os Produtos
+          <Grid className="w-3.5 h-3.5 stroke-[1.5]" /> Todos os Produtos
         </button>
 
         {categories.map((cat) => {
@@ -66,13 +58,13 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             <button
               key={cat.id}
               onClick={() => onSelectCategory(cat.slug)}
-              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-200 border cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all border ${
                 isSelected
-                  ? 'bg-emerald-950 text-amber-400 border-emerald-950 shadow-md scale-102'
-                  : 'bg-white text-slate-700 border-slate-200/90 hover:border-amber-400 hover:bg-amber-50/40 shadow-2xs'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
-              <span className={isSelected ? 'text-amber-400' : 'text-amber-600'}>
+              <span className={isSelected ? 'text-amber-400' : 'text-slate-500'}>
                 {getIcon(cat.slug)}
               </span>
               {cat.nome}
@@ -80,6 +72,6 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
           );
         })}
       </div>
-    </section>
+    </div>
   );
 };
