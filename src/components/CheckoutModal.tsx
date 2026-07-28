@@ -52,7 +52,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     pix?: { qrCode: string; qrCodeBase64: string; paymentId: string };
   } | null>(null);
 
-  // Snapshot permanente dos dados do pedido para garantir que o WhatsApp puxe tudo perfeitamente mesmo após limpar o carrinho
+  // Snapshot permanente dos dados do pedido
   const [purchasedSnapshot, setPurchasedSnapshot] = useState<{
     orderId: string;
     total: number;
@@ -188,7 +188,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         onShowToast('Pedido enviado para o WhatsApp comercial.', 'success');
       }
     } catch (err: any) {
-      onShowToast(err.message || 'Erro inesperado. Tente novamente.', 'error');
+      console.error('❌ Erro no submit do CheckoutModal:', err);
+      let msg = err.message || 'Erro de conexão com o servidor. Tente novamente.';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+        msg = 'Falha de comunicação com o servidor local. O servidor foi reiniciado, tente novamente.';
+      }
+      onShowToast(msg, 'error');
     } finally {
       setLoading(false);
     }

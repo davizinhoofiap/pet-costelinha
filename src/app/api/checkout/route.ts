@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   try {
     const ip = getClientIp(req);
 
-    // 1. Rate Limiting com Upstash Redis (10 solicitações / 300s por IP)
+    // 1. Rate Limiting com Upstash Redis + Memory Fallback (10 solicitações / 300s por IP)
     const rateCheck = await checkRateLimit(`checkout:${ip}`, 10, 300);
     if (!rateCheck.success) {
       return NextResponse.json(
@@ -21,9 +21,9 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { clienteNome, clienteEmail, clienteCpf, enderecoEntrega, items, metodoPagamento, turnstileToken } = body;
+    const { clienteNome, clienteEmail, clienteCpf, clienteTelefone, enderecoEntrega, items, metodoPagamento, turnstileToken } = body;
 
-    // 2. Validação Anti-Bot do Cloudflare Turnstile (se fornecido no formulário)
+    // 2. Validação Anti-Bot do Cloudflare Turnstile (resiliente para mobile/dev)
     if (turnstileToken) {
       const turnstileCheck = await verifyTurnstileToken(turnstileToken, ip);
       if (!turnstileCheck.success) {
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     }
 
     // 5. Buscar produtos no banco e recalcular total seguro
-    const productIds = items.map((i: any) => String(i.productId));
+    const productIds = items.map((i: any) => String(i.productId || i.id));
     const dbProducts = await prisma.product.findMany({
       where: { id: { in: productIds } },
     });
@@ -58,14 +58,15 @@ export async function POST(req: Request) {
     const emailItems = [];
 
     for (const item of items) {
+      const targetId = String(item.productId || item.id);
       const quantidadeNum = parseInt(item.quantidade, 10);
       if (isNaN(quantidadeNum) || quantidadeNum <= 0) {
         return NextResponse.json({ error: 'Quantidade inválida para o produto.' }, { status: 400 });
       }
 
-      const prod = dbProducts.find((p) => p.id === item.productId);
+      const prod = dbProducts.find((p) => p.id === targetId);
       if (!prod) {
-        return NextResponse.json({ error: `Produto não foi encontrado no estoque.` }, { status: 400 });
+        return NextResponse.json({ error: `Produto não localizado no estoque.` }, { status: 400 });
       }
 
       if (prod.estoque < quantidadeNum) {
@@ -93,12 +94,13 @@ export async function POST(req: Request) {
       totalCalculado = 1.00;
     }
 
-    // 6. Criar Pedido no Banco de Dados
+    // 6. Criar Pedido no Banco de Dados Aiven Cloud
     const newOrder = await prisma.order.create({
       data: {
         cliente_nome: String(clienteNome).trim(),
         cliente_email: String(clienteEmail).toLowerCase().trim(),
         cliente_cpf: String(clienteCpf).replace(/\D/g, ''),
+        cliente_telefone: clienteTelefone ? String(clienteTelefone).trim() : null,
         endereco_entrega: String(enderecoEntrega).trim(),
         total_valor: totalCalculado,
         status: 'PENDING',
@@ -112,35 +114,41 @@ export async function POST(req: Request) {
       },
     });
 
-    // 7. Baixa de estoque
+    // 7. Baixa no estoque
     for (const item of items) {
+      const targetId = String(item.productId || item.id);
       const quantidadeNum = parseInt(item.quantidade, 10);
       await prisma.product.update({
-        where: { id: String(item.productId) },
+        where: { id: targetId },
         data: { estoque: { decrement: quantidadeNum } },
       });
     }
 
-    // 8. Processar Pagamento PIX se aplicável
+    // 8. Processar Pagamento PIX via Mercado Pago se aplicável
     let pixData = null;
     if (metodoPagamento !== 'WHATSAPP') {
-      pixData = await createPixPayment(
-        newOrder.id,
-        totalCalculado,
-        clienteEmail,
-        clienteNome,
-        clienteCpf
-      );
+      try {
+        pixData = await createPixPayment(
+          newOrder.id,
+          totalCalculado,
+          clienteEmail,
+          clienteNome,
+          clienteCpf
+        );
 
-      if (pixData) {
-        await prisma.order.update({
-          where: { id: newOrder.id },
-          data: {
-            gateway_payment_id: pixData.paymentId,
-            qr_code_pix: pixData.qrCode,
-            qr_code_base64: pixData.qrCodeBase64,
-          },
-        });
+        if (pixData) {
+          await prisma.order.update({
+            where: { id: newOrder.id },
+            data: {
+              gateway_payment_id: pixData.paymentId,
+              qr_code_pix: pixData.qrCode,
+              qr_code_base64: pixData.qrCodeBase64,
+            },
+          });
+        }
+      } catch (pixErr: any) {
+        console.error('⚠️ Falha ao gerar PIX Mercado Pago no gateway:', pixErr);
+        // Em caso de instabilidade no gateway Mercado Pago, não trava o pedido: responde com orderId gravada
       }
     }
 
@@ -168,7 +176,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('❌ Erro no processamento do checkout:', error);
     return NextResponse.json(
-      { error: 'Erro ao processar o pedido no servidor. Por favor, tente novamente.' },
+      { error: error.message || 'Erro ao processar o pedido no servidor. Por favor, tente novamente.' },
       { status: 500 }
     );
   }
