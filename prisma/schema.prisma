@@ -83,7 +83,7 @@ model StoreSetting {
   email_suporte    String   @default("contato@petcostelinha.com.br")
   endereco         String   @default("Rua Benigno Nogueira Franco, 367 - Jd. das Oliveras, SP")
   cnpj             String   @default("12.345.678/0001-90")
-  chave_pix        String   @default("petcostelinha2021@gmail.com")
+  chave_pix        String   @default("11982441326")
   frete_gratis_min Decimal  @default(30.00) @db.Decimal(10, 2)
   updated_at       DateTime @updatedAt
 

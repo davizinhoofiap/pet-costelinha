@@ -203,7 +203,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
-  const pixCodeToCopy = orderResult?.pix?.qrCode || 'petcostelinha2021@gmail.com';
+  const hasMercadoPagoPix = Boolean(orderResult?.pix?.qrCode && orderResult?.pix?.qrCodeBase64);
+  const pixCodeToCopy = hasMercadoPagoPix ? orderResult!.pix!.qrCode : '11982441326';
 
   const handleCopyPix = () => {
     navigator.clipboard.writeText(pixCodeToCopy);
@@ -448,7 +449,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </form>
           )}
 
-          {/* STEP 2: PIX SCREEN (Resiliente e Sem Tela Branca) */}
+          {/* STEP 2: PIX SCREEN */}
           {step === 'PIX_SCREEN' && (
             <div className="space-y-5 text-center">
               <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-left flex justify-between items-center text-xs">
@@ -466,32 +467,34 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </span>
               </div>
 
-              {/* Exibição do QR Code se disponível ou Fallback Oficial */}
+              {/* Exibição Exclusiva do QR Code do Mercado Pago se Carregado, OU Fallback de Celular 11982441326 */}
               <div className="flex flex-col items-center justify-center space-y-2">
                 <div className="p-3.5 bg-white border-2 border-slate-200 rounded-2xl shadow-sm inline-block">
-                  {orderResult?.pix?.qrCodeBase64 ? (
+                  {hasMercadoPagoPix ? (
                     <img
-                      src={orderResult.pix.qrCodeBase64}
+                      src={orderResult!.pix!.qrCodeBase64}
                       alt="QR Code PIX Mercado Pago"
                       className="w-48 h-48 object-contain"
                     />
                   ) : (
-                    <div className="w-48 h-48 bg-slate-50 border border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center p-3 text-center space-y-2">
+                    <div className="w-48 h-48 bg-orange-50/50 border border-dashed border-orange-300 rounded-xl flex flex-col items-center justify-center p-3 text-center space-y-2">
                       <QrCode className="w-12 h-12 text-orange-600 stroke-[1.5]" />
-                      <span className="text-[11px] font-bold text-slate-800">Chave PIX Oficial Pet Costelinha</span>
-                      <span className="text-[10px] text-slate-500 font-mono">petcostelinha2021@gmail.com</span>
+                      <span className="text-[11px] font-extrabold text-slate-900">Chave PIX (Celular)</span>
+                      <span className="text-xs text-orange-600 font-mono font-bold">11982441326</span>
                     </div>
                   )}
                 </div>
                 <p className="text-xs text-slate-600 max-w-xs leading-relaxed">
-                  Abra o aplicativo do seu banco e escaneie o código QR acima ou copie a chave oficial abaixo.
+                  {hasMercadoPagoPix
+                    ? 'Abra o aplicativo do seu banco e escaneie o código QR acima para pagamento instantâneo.'
+                    : 'Copie a chave PIX (Celular) abaixo e realize a transferência pelo app do seu banco.'}
                 </p>
               </div>
 
               {/* Chave Copia e Cola */}
               <div className="space-y-2 text-left bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                  {orderResult?.pix?.qrCode ? 'Código PIX Copia e Cola Oficial:' : 'Chave PIX Oficial da Loja:'}
+                  {hasMercadoPagoPix ? 'Código PIX Copia e Cola Oficial:' : 'Chave PIX Oficial (Celular):'}
                 </label>
                 <div className="flex gap-2">
                   <input
