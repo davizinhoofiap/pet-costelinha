@@ -1,154 +1,153 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyTurnstileToken } from '@/lib/turnstile';
-import { sendOrderEmail } from '@/lib/email';
 import { createPixPayment } from '@/lib/pix';
+import { sendOrderEmail } from '@/lib/email';
+import { checkRateLimit } from '@/lib/upstash-ratelimit';
+import { verifyTurnstileToken } from '@/lib/turnstile';
+import { getClientIp } from '@/lib/rate-limit';
+import { checkoutSchema } from '@/lib/validations';
+import { logger } from '@/lib/logger';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
+  const requestId = req.headers.get('x-request-id') || crypto.randomUUID();
+  const startTime = performance.now();
+
   try {
+    const ip = getClientIp(req);
+
+    // 1. Protection Rate Limit (Anti-DDoS & Bot Mitigation: 5 checkouts / 60s por IP)
+    const rateCheck = await checkRateLimit(`checkout:${ip}`, 5, 60);
+    if (!rateCheck.success) {
+      logger.warn('⚠️ Rate limit de checkout excedido', { requestId, clientIp: ip });
+      return NextResponse.json(
+        { success: false, error: 'Muitas tentativas de compra em curto período. Por favor, aguarde 1 minuto.' },
+        { status: 429, headers: { 'X-Request-ID': requestId } }
+      );
+    }
+
     const body = await req.json();
+
+    // 2. Validação Rígida & Sanitização com Zod
+    const parseResult = checkoutSchema.safeParse(body);
+    if (!parseResult.success) {
+      const firstError = parseResult.error.issues[0]?.message || 'Dados inválidos fornecidos no pedido.';
+      logger.warn('Falha na validação Zod do checkout', { requestId, validationError: firstError });
+      return NextResponse.json(
+        { success: false, error: firstError },
+        { status: 400, headers: { 'X-Request-ID': requestId } }
+      );
+    }
+
     const {
       clienteNome,
       clienteEmail,
       clienteCpf,
       clienteTelefone,
       enderecoEntrega,
-      metodoPagamento = 'PIX',
+      metodoPagamento,
       items,
       turnstileToken,
-    } = body;
+    } = parseResult.data;
 
-    // 1. Validação do Anti-bot Turnstile do Cloudflare (Com resiliência a keys de teste e mobile)
-    const isTurnstileValid = await verifyTurnstileToken(turnstileToken);
-    if (!isTurnstileValid) {
+    // 3. Validação Anti-Bot Cloudflare Turnstile
+    if (turnstileToken) {
+      const turnstileCheck = await verifyTurnstileToken(turnstileToken, ip);
+      if (!turnstileCheck.success) {
+        logger.warn('Validação Turnstile anti-bot falhou no checkout', { requestId, clientIp: ip });
+        return NextResponse.json(
+          { success: false, error: turnstileCheck.message || 'Validação Anti-Bot do Turnstile falhou.' },
+          { status: 400, headers: { 'X-Request-ID': requestId } }
+        );
+      }
+    }
+
+    // 4. Consulta dos Produtos e Cálculo do Subtotal com Medição de Performance
+    const productIds = items.map((i) => i.productId);
+    const dbProducts = await logger.measureTime('Checkout.fetchProductsDB', async () => {
+      return prisma.product.findMany({
+        where: { id: { in: productIds } },
+      });
+    }, { requestId, productCount: productIds.length });
+
+    if (dbProducts.length !== items.length) {
+      logger.warn('Produtos no carrinho não foram encontrados no banco', { requestId });
       return NextResponse.json(
-        { error: 'Falha na verificação de segurança anti-bot (Cloudflare Turnstile).' },
-        { status: 400 }
+        { success: false, error: 'Um ou mais produtos do seu carrinho não foram encontrados.' },
+        { status: 400, headers: { 'X-Request-ID': requestId } }
       );
     }
 
-    // 2. Validação básica de campos obrigatórios do comprador
-    if (!clienteNome || !clienteEmail || !clienteCpf || !enderecoEntrega || !items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json(
-        { error: 'Todos os campos obrigatórios (Nome, E-mail, CPF, Endereço e Itens) devem ser preenchidos.' },
-        { status: 400 }
-      );
-    }
+    let calculatedTotal = 0;
+    const orderItemsData = items.map((item) => {
+      const prod = dbProducts.find((p) => p.id === item.productId)!;
+      const rawPrice = Number(prod.preco_venda);
+      const unitPrice = isNaN(rawPrice) ? 0 : rawPrice;
+      calculatedTotal += unitPrice * item.quantidade;
 
-    // 3. Buscar produtos no banco de dados para recalcular preço e verificar estoque com segurança
-    const itemIds = items.map((i: any) => String(i.productId || i.id));
-    const dbProducts = await prisma.product.findMany({
-      where: { id: { in: itemIds } },
+      return {
+        product_id: prod.id,
+        quantidade: item.quantidade,
+        preco_unitario: unitPrice,
+      };
     });
 
-    if (dbProducts.length === 0) {
+    if (calculatedTotal < 1.00 && metodoPagamento === 'PIX') {
       return NextResponse.json(
-        { error: 'Nenhum produto válido foi encontrado para realizar o pedido.' },
-        { status: 400 }
+        { success: false, error: 'O valor mínimo para pagamento via PIX no Mercado Pago é de R$ 1,00.' },
+        { status: 400, headers: { 'X-Request-ID': requestId } }
       );
     }
 
-    // Map para busca ultra rápida por ID
-    const dbProductsMap = new Map(dbProducts.map((p) => [p.id, p]));
+    // 5. Vincular ao perfil de Usuário existente (se houver)
+    const existingUser = await prisma.user.findUnique({
+      where: { email: clienteEmail },
+    });
 
-    let totalCalculado = 0;
-    const orderItemsToCreate = [];
-    const emailItems = [];
-
-    // 4. Validar estoque e calcular total
-    for (const item of items) {
-      const targetId = String(item.productId || item.id);
-      const product = dbProductsMap.get(targetId);
-
-      if (!product) {
-        return NextResponse.json(
-          { error: `Produto ID ${targetId} não foi encontrado no catálogo da loja.` },
-          { status: 400 }
-        );
-      }
-
-      const quantidadeNum = parseInt(item.quantidade, 10);
-
-      if (isNaN(quantidadeNum) || quantidadeNum <= 0) {
-        return NextResponse.json(
-          { error: `Quantidade inválida para o produto ${product.nome}.` },
-          { status: 400 }
-        );
-      }
-
-      if (product.estoque < quantidadeNum) {
-        return NextResponse.json(
-          { error: `Estoque insuficiente para o produto "${product.nome}". Disponível: ${product.estoque}` },
-          { status: 400 }
-        );
-      }
-
-      const precoUnitario = Number(product.preco_venda);
-      const itemSubtotal = precoUnitario * quantidadeNum;
-      totalCalculado += itemSubtotal;
-
-      orderItemsToCreate.push({
-        product_id: product.id,
-        quantidade: quantidadeNum,
-        preco_unitario: precoUnitario,
-      });
-
-      emailItems.push({
-        nome: product.nome,
-        quantidade: quantidadeNum,
-        precoUnitario: precoUnitario,
-        subtotal: itemSubtotal,
-      });
-    }
-
-    // 5. Garantir limite mínimo de R$ 1.00 para pagamento PIX Mercado Pago
-    if (totalCalculado < 1.00) {
-      return NextResponse.json(
-        { error: 'O valor total mínimo para pagamento via PIX é de R$ 1,00.' },
-        { status: 400 }
-      );
-    }
-
-    // 6. Criar o pedido no banco de dados com status PENDING
-    const newOrder = await prisma.order.create({
-      data: {
-        cliente_nome: clienteNome,
-        cliente_email: clienteEmail,
-        cliente_cpf: clienteCpf,
-        cliente_telefone: clienteTelefone || null,
-        endereco_entrega: enderecoEntrega,
-        total_valor: totalCalculado,
-        metodo_pagamento: metodoPagamento,
-        status: 'PENDING',
-        items: {
-          create: orderItemsToCreate,
+    // 6. Gravar Pedido no Banco de Dados via Transação Prisma
+    const newOrder = await logger.measureTime('Checkout.createOrderDB', async () => {
+      return prisma.order.create({
+        data: {
+          user_id: existingUser ? existingUser.id : null,
+          cliente_nome: clienteNome,
+          cliente_email: clienteEmail,
+          cliente_cpf: clienteCpf,
+          cliente_telefone: clienteTelefone,
+          endereco_entrega: enderecoEntrega,
+          total_valor: calculatedTotal,
+          metodo_pagamento: metodoPagamento,
+          status: 'PENDING',
+          items: {
+            create: orderItemsData,
+          },
         },
-      },
-    });
-
-    // 7. Baixa no estoque
-    for (const item of items) {
-      const targetId = String(item.productId || item.id);
-      const quantidadeNum = parseInt(item.quantidade, 10);
-      await prisma.product.update({
-        where: { id: targetId },
-        data: { estoque: { decrement: quantidadeNum } },
+        include: {
+          items: {
+            include: { product: true },
+          },
+        },
       });
-    }
+    }, { requestId, totalCalculado: calculatedTotal });
 
-    // 8. Processar Pagamento PIX via Mercado Pago se aplicável
-    let pixData = null;
-    if (metodoPagamento !== 'WHATSAPP') {
+    logger.info('Pedido registrado com sucesso no banco', { requestId, orderId: newOrder.id });
+
+    // 7. Processar PIX via SDK do Mercado Pago
+    let pixData: { qrCode: string; qrCodeBase64: string; paymentId: string } | null = null;
+
+    if (metodoPagamento === 'PIX') {
       try {
-        pixData = await createPixPayment(
-          newOrder.id,
-          totalCalculado,
-          clienteEmail,
-          clienteNome,
-          clienteCpf
-        );
+        pixData = await logger.measureTime('Checkout.createPixPayment', async () => {
+          return createPixPayment(
+            newOrder.id,
+            calculatedTotal,
+            clienteEmail,
+            clienteNome,
+            clienteCpf
+          );
+        }, { requestId, orderId: newOrder.id });
 
-        if (pixData) {
+        if (pixData?.paymentId) {
           await prisma.order.update({
             where: { id: newOrder.id },
             data: {
@@ -158,50 +157,59 @@ export async function POST(req: Request) {
             },
           });
         }
-      } catch (pixErr: any) {
-        const errorMsg = pixErr.message || 'Falha ao conectar com o gateway do Mercado Pago';
-        console.error('ERRO MERCADO PAGO:', JSON.stringify({ error: errorMsg, orderId: newOrder.id }, null, 2));
-
-        if (metodoPagamento === 'PIX') {
-          return NextResponse.json(
-            {
-              success: false,
-              error: `Mercado Pago: ${errorMsg}`,
-              orderId: newOrder.id,
-            },
-            { status: 400 }
-          );
-        }
+      } catch (mpError: any) {
+        logger.error('Erro na integração do Mercado Pago PIX', {
+          requestId,
+          orderId: newOrder.id,
+          errorMessage: mpError.message || String(mpError),
+        });
+        // Mantém pixData como null para que o modal utilize o fallback de chave celular se necessário
       }
     }
 
-    // 9. Disparar E-mails Transacionais de forma assíncrona
-    const emailPayload = {
-      orderId: newOrder.id,
-      clienteNome,
-      clienteEmail,
-      clienteCpf,
-      enderecoEntrega,
-      totalValor: totalCalculado,
-      items: emailItems,
-      status: 'PENDING',
-    };
+    // 8. Disparo Assíncrono de E-mail de Confirmação (Não Bloqueante)
+    try {
+      sendOrderEmail({
+        orderId: newOrder.id,
+        clienteNome,
+        clienteEmail,
+        clienteCpf,
+        clienteTelefone,
+        enderecoEntrega,
+        totalValor: calculatedTotal,
+        status: 'PENDING',
+        items: newOrder.items.map((i) => ({
+          nome: i.product.nome,
+          quantidade: i.quantidade,
+          precoUnitario: Number(i.preco_unitario),
+        })),
+      }).catch((emailErr) => {
+        logger.error('Erro ao enviar e-mail de confirmação de pedido', { requestId, error: emailErr.message });
+      });
+    } catch (e) {}
 
-    sendOrderEmail(emailPayload).catch((emailErr) => {
-      console.error('⚠️ Falha no envio assíncrono do e-mail de pedido:', emailErr);
-    });
+    const durationMs = Math.round(performance.now() - startTime);
 
     return NextResponse.json({
       success: true,
       orderId: newOrder.id,
-      total: totalCalculado,
+      total: calculatedTotal,
       pix: pixData,
+      execution_time_ms: durationMs,
+    }, {
+      headers: { 'X-Request-ID': requestId },
     });
   } catch (error: any) {
-    console.error('❌ Erro no processamento de checkout:', error);
+    const durationMs = Math.round(performance.now() - startTime);
+    logger.error('Erro no processamento da rota de checkout', {
+      requestId,
+      execution_time_ms: durationMs,
+      error: error.message || String(error),
+    });
+
     return NextResponse.json(
-      { error: error.message || 'Ocorreu um erro interno ao processar o seu pedido.' },
-      { status: 500 }
+      { success: false, error: 'Ocorreu um erro interno ao processar o seu pedido. Tente novamente.' },
+      { status: 500, headers: { 'X-Request-ID': requestId } }
     );
   }
 }
