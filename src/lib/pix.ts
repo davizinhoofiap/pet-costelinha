@@ -17,14 +17,15 @@ export async function createPixPayment(
   customerName: string,
   customerCpf: string
 ): Promise<PixPaymentResponse> {
-  // Suporte a ambas as nomenclaturas de variável de ambiente (com ou sem underscore)
+  // Checklist item 3: Leitura de runtime do token
   const token = (process.env.MERCADO_PAGO_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN)
     ?.trim()
     .replace(/^["']|["']$/g, '');
 
   if (!token) {
-    console.error('❌ ERRO CRÍTICO: MERCADO_PAGO_ACCESS_TOKEN / MERCADOPAGO_ACCESS_TOKEN ausente nas variáveis de ambiente.');
-    throw new Error('Chave de integração do Mercado Pago não configurada no servidor.');
+    const errorMsg = 'MERCADO_PAGO_ACCESS_TOKEN não configurado no ambiente do servidor';
+    console.error('ERRO MERCADO PAGO:', JSON.stringify({ error: errorMsg }, null, 2));
+    throw new Error(errorMsg);
   }
 
   // 1. Tratamento do valor total (mínimo de R$ 1.00 exigido pelo Mercado Pago)
@@ -79,10 +80,10 @@ export async function createPixPayment(
       } catch (e) {
         mpError = { message: await mpResponse.text() };
       }
-      console.error('❌ Erro Recusado pela API Mercado Pago:', mpResponse.status, JSON.stringify(mpError, null, 2));
+      console.error('ERRO MERCADO PAGO:', JSON.stringify(mpError, null, 2));
 
       const firstCause = mpError.cause && mpError.cause[0] ? mpError.cause[0].description : null;
-      const detailMessage = firstCause || mpError.message || 'Dados de pagamento recusados pelo gateway.';
+      const detailMessage = firstCause || mpError.message || mpError.error || 'Dados de pagamento recusados pelo gateway.';
       throw new Error(`Mercado Pago (${mpResponse.status}): ${detailMessage}`);
     }
 
@@ -90,7 +91,7 @@ export async function createPixPayment(
     const transactionData = data.point_of_interaction?.transaction_data;
 
     if (!transactionData) {
-      console.error('❌ Resposta do Mercado Pago sem o bloco transaction_data:', JSON.stringify(data, null, 2));
+      console.error('ERRO MERCADO PAGO:', JSON.stringify({ error: 'Resposta sem o nó point_of_interaction.transaction_data', response: data }, null, 2));
       throw new Error('Resposta do Mercado Pago não contém o bloco point_of_interaction.transaction_data.');
     }
 
@@ -104,7 +105,7 @@ export async function createPixPayment(
       qrCodeBase64 = await QRCode.toDataURL(qrCode, { margin: 1, width: 300 });
     }
 
-    console.log(`✅ PIX Mercado Pago gerado com sucesso. ID: ${data.id}, Valor: R$ ${formattedAmount}, QR Base64: ${qrCodeBase64 ? 'OK' : 'FALHOU'}`);
+    console.log(`✅ PIX Mercado Pago gerado com sucesso. ID: ${data.id}, Valor: R$ ${formattedAmount}`);
 
     return {
       paymentId: String(data.id),
@@ -113,7 +114,7 @@ export async function createPixPayment(
       status: data.status || 'pending',
     };
   } catch (error: any) {
-    console.error('❌ Erro na integração Mercado Pago:', error);
+    console.error('ERRO MERCADO PAGO:', JSON.stringify({ message: error.message, stack: error.stack }, null, 2));
     throw error;
   }
 }

@@ -167,7 +167,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
       const data = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok || data.success === false) {
+        // Item 2: Imprimir no Console F12 a falha exata
+        console.error("FALHA AO GERAR PIX:", data.error || data);
         throw new Error(data.error || 'Erro ao processar o checkout.');
       }
 
@@ -185,7 +187,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setOrderResult(data);
       setPurchasedSnapshot(snapshot);
 
-      // Salvamento dinâmico dos dados do Pix no estado React (Requisito 1)
+      // Salvamento dinâmico dos dados do Pix no estado React
       if (data.pix && (data.pix.qrCode || data.pix.qrCodeBase64)) {
         setPixData({
           qrCode: data.pix.qrCode,
@@ -210,7 +212,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         onShowToast('Pedido enviado para o WhatsApp comercial.', 'success');
       }
     } catch (err: any) {
-      console.error('❌ Erro no submit do CheckoutModal:', err);
+      // Item 2: Log detalhado no console do navegador
+      console.error("FALHA AO GERAR PIX:", err.message || err);
       let msg = err.message || 'Erro de conexão com o servidor. Tente novamente.';
       if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
         msg = 'Falha de comunicação com o servidor. Tente novamente.';
@@ -485,7 +488,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </span>
               </div>
 
-              {/* Requisito 2: Renderização da Imagem do QR Code Dinâmica via <img> em Base64 */}
+              {/* Renderização da Imagem do QR Code Dinâmica via <img> em Base64 */}
               <div className="flex flex-col items-center justify-center space-y-2">
                 <div className="p-3.5 bg-white border-2 border-slate-200 rounded-2xl shadow-sm inline-block">
                   {pixData?.qrCodeBase64 ? (
@@ -509,7 +512,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </p>
               </div>
 
-              {/* Requisito 3: Input do Copia e Cola Dinâmico retornado pela API */}
+              {/* Input do Copia e Cola Dinâmico retornado pela API */}
               <div className="space-y-2 text-left bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                   {pixData?.qrCode ? 'Código PIX Copia e Cola Oficial:' : 'Chave PIX Oficial (Celular):'}

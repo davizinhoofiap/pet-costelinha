@@ -100,6 +100,10 @@ export async function sendCustomerOrderConfirmation(payload: OrderEmailPayload) 
   }
 }
 
+export async function sendOrderEmail(payload: OrderEmailPayload) {
+  return sendCustomerOrderConfirmation(payload);
+}
+
 /**
  * Envia E-mail de Notificação de Novo Pedido Pago para a Equipe (Gerente/Atendentes)
  * Suporta múltiplos e-mails separados por vírgula em process.env.MANAGER_EMAIL
