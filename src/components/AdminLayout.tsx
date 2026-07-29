@@ -17,7 +17,8 @@ import {
   ExternalLink,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Dog
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/masks';
 
@@ -212,7 +213,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             <div className="p-3 border-b border-slate-100 flex items-center justify-between min-h-[57px]">
               <div className="flex items-center gap-2 overflow-hidden">
                 <div className="w-7 h-7 bg-slate-900 text-white rounded-lg flex items-center justify-center font-bold shrink-0">
-                  <Store className="w-3.5 h-3.5 stroke-[1.5]" />
+                  <Dog className="w-4 h-4 stroke-[1.5]" />
                 </div>
                 {!isCollapsed && (
                   <div className="truncate whitespace-nowrap">
@@ -375,13 +376,16 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col min-w-0 max-w-full overflow-x-hidden">
         {/* Top Header Bar com LOGO OFICIAL DA LOJA, Sininho de Notificações E Botão Sair da Conta */}
         <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-2xs">
-          {/* Logo da Loja + Nome no Header */}
+          {/* Logo da Loja + Ícone de Cachorro + Nome no Header */}
           <div className="flex items-center gap-2.5">
             <img 
               src="/logo.png" 
               alt="Pet Costelinha Logo" 
               className="w-7 h-7 object-contain rounded-lg shadow-2xs border border-slate-100 bg-white p-0.5 shrink-0" 
             />
+            <div className="p-1.5 bg-amber-50 border border-amber-200/80 rounded-lg text-amber-700 flex items-center justify-center shrink-0">
+              <Dog className="w-4 h-4 stroke-[1.5]" />
+            </div>
             <span className="text-xs font-bold text-slate-800">
               Painel da Loja Pet Costelinha
             </span>
