@@ -96,18 +96,38 @@ export async function DELETE(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const orderId = searchParams.get('orderId');
+    const orderIdsParam = searchParams.get('orderIds');
 
-    if (!orderId) {
-      return NextResponse.json({ error: 'ID do pedido é obrigatório para exclusão' }, { status: 400 });
+    let idsToDelete: string[] = [];
+
+    if (orderId) {
+      idsToDelete.push(orderId);
+    } else if (orderIdsParam) {
+      idsToDelete = orderIdsParam.split(',').filter(Boolean);
+    } else {
+      const body = await req.json().catch(() => ({}));
+      if (Array.isArray(body.orderIds) && body.orderIds.length > 0) {
+        idsToDelete = body.orderIds;
+      }
     }
 
-    await prisma.order.delete({
-      where: { id: String(orderId) },
+    if (idsToDelete.length === 0) {
+      return NextResponse.json({ error: 'Selecione pelo menos um pedido para exclusão.' }, { status: 400 });
+    }
+
+    const result = await prisma.order.deleteMany({
+      where: {
+        id: { in: idsToDelete },
+      },
     });
 
-    return NextResponse.json({ success: true, message: 'Pedido excluído com sucesso' });
+    return NextResponse.json({
+      success: true,
+      count: result.count,
+      message: `${result.count} pedido(s) excluído(s) do banco de dados com sucesso.`,
+    });
   } catch (error) {
-    console.error('Erro ao excluir pedido:', error);
-    return NextResponse.json({ error: 'Erro ao excluir pedido do banco de dados' }, { status: 500 });
+    console.error('Erro ao excluir pedidos:', error);
+    return NextResponse.json({ error: 'Erro ao excluir pedidos do banco de dados.' }, { status: 500 });
   }
 }
