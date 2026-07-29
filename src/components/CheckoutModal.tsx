@@ -773,88 +773,174 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
           )}
 
-          {/* STEP 3: SUCCESS */}
+          {/* STEP 3: SUCCESS / CONFIRMATION */}
           {step === 'SUCCESS' && (
             <div className="text-center py-3 space-y-4">
-              <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full mx-auto flex items-center justify-center shadow-xs">
-                <CheckCircle2 className="w-7 h-7 stroke-[2]" />
-              </div>
+              {paymentMethod === 'WHATSAPP' ? (
+                <>
+                  <div className="w-12 h-12 bg-amber-100 text-amber-700 rounded-full mx-auto flex items-center justify-center shadow-xs">
+                    <MessageSquare className="w-7 h-7 stroke-[2]" />
+                  </div>
 
-              <div className="space-y-0.5">
-                <h3 className="text-base font-black text-slate-900">Pagamento Confirmado com Sucesso!</h3>
-                <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
-                  Sua compra foi aprovada e gravada no sistema! A nota fiscal foi enviada para <strong>{purchasedSnapshot?.email || email}</strong>.
-                </p>
-              </div>
-
-              {/* Resumo do Pedido */}
-              <div className="bg-slate-50 border border-slate-200/90 rounded-xl p-3 text-left space-y-2 text-xs">
-                <div className="flex justify-between items-center pb-2 border-b border-slate-200">
-                  <div>
-                    <span className="text-[9px] font-mono text-slate-500 uppercase">CÓDIGO DO PEDIDO</span>
-                    <p className="font-extrabold text-slate-900 text-xs">
-                      #{purchasedSnapshot?.orderId ? purchasedSnapshot.orderId.slice(0, 8) : (orderResult?.orderId ? orderResult.orderId.slice(0, 8) : '000000')}
+                  <div className="space-y-0.5">
+                    <h3 className="text-base font-black text-slate-900">Pedido Registrado com Sucesso!</h3>
+                    <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
+                      Sua solicitação foi gravada! Para concluir sua compra e realizar o pagamento, clique no botão abaixo e envie a mensagem no nosso WhatsApp.
                     </p>
                   </div>
-                  <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-extrabold px-2 py-0.5 rounded-md">
-                    PAID / PAGO VIA PIX
-                  </span>
-                </div>
 
-                <div className="space-y-1 text-xs">
-                  <span className="text-[9px] font-bold text-slate-500 uppercase block">Itens Comprados:</span>
-                  {(purchasedSnapshot?.items || cart).map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-slate-700">
-                      <span className="truncate pr-2">• {item.quantity}x {item.product.nome}</span>
-                      <span className="font-semibold text-slate-900 shrink-0">
-                        {formatCurrency((typeof item.product.preco_venda === 'string' ? parseFloat(item.product.preco_venda) : item.product.preco_venda) * item.quantity)}
+                  {/* Resumo do Pedido */}
+                  <div className="bg-slate-50 border border-slate-200/90 rounded-xl p-3 text-left space-y-2 text-xs">
+                    <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+                      <div>
+                        <span className="text-[9px] font-mono text-slate-500 uppercase">CÓDIGO DO PEDIDO</span>
+                        <p className="font-extrabold text-slate-900 text-xs">
+                          #{purchasedSnapshot?.orderId ? purchasedSnapshot.orderId.slice(0, 8) : (orderResult?.orderId ? orderResult.orderId.slice(0, 8) : '000000')}
+                        </p>
+                      </div>
+                      <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md">
+                        AGUARDANDO ATENDIMENTO / PAGAMENTO VIA WHATSAPP
                       </span>
                     </div>
-                  ))}
-                </div>
 
-                <div className="pt-1.5 border-t border-slate-200 space-y-0.5">
-                  <span className="text-[9px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-orange-600 stroke-[1.5]" /> Endereço de Entrega:
-                  </span>
-                  <p className="text-[11px] text-slate-800 font-medium">{purchasedSnapshot?.endereco || `${logradouro}, ${numero}`}</p>
-                </div>
+                    <div className="space-y-1 text-xs">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase block">Itens Solicitados:</span>
+                      {(purchasedSnapshot?.items || cart).map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-slate-700">
+                          <span className="truncate pr-2">• {item.quantity}x {item.product.nome}</span>
+                          <span className="font-semibold text-slate-900 shrink-0">
+                            {formatCurrency((typeof item.product.preco_venda === 'string' ? parseFloat(item.product.preco_venda) : item.product.preco_venda) * item.quantity)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
 
-                <div className="pt-1.5 border-t border-slate-200 flex justify-between items-center">
-                  <span className="text-xs font-bold text-slate-700">Total Pago:</span>
-                  <span className="text-sm font-black text-emerald-600">
-                    {formatCurrency(purchasedSnapshot?.total || orderResult?.total || totalValor)}
-                  </span>
-                </div>
-              </div>
+                    <div className="pt-1.5 border-t border-slate-200 space-y-0.5">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-orange-600 stroke-[1.5]" /> Endereço de Entrega:
+                      </span>
+                      <p className="text-[11px] text-slate-800 font-medium">{purchasedSnapshot?.endereco || `${logradouro}, ${numero}`}</p>
+                    </div>
 
-              {/* Botão de Envio WhatsApp */}
-              <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl space-y-2">
-                <p className="text-xs text-emerald-950 font-medium text-left">
-                  Quer enviar o comprovante com todos os dados da compra no WhatsApp da loja?
-                </p>
+                    <div className="pt-1.5 border-t border-slate-200 flex justify-between items-center">
+                      <span className="text-xs font-bold text-slate-700">Total a Pagar:</span>
+                      <span className="text-sm font-black text-slate-900">
+                        {formatCurrency(purchasedSnapshot?.total || orderResult?.total || totalValor)}
+                      </span>
+                    </div>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleOpenWhatsAppWithSnapshot(purchasedSnapshot, true)}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
-                >
-                  <PhoneCall className="w-4 h-4 stroke-[1.5]" />
-                  Enviar Comprovante pelo WhatsApp
-                </button>
-              </div>
+                  {/* Botão de Envio WhatsApp */}
+                  <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl space-y-2">
+                    <p className="text-xs text-amber-950 font-medium text-left">
+                      Clique no botão abaixo para abrir o WhatsApp e concluir o pagamento com a nossa equipe.
+                    </p>
 
-              <div className="pt-1">
-                <button
-                  onClick={() => {
-                    onClose();
-                    setStep('FORM');
-                  }}
-                  className="bg-slate-900 text-white hover:bg-slate-800 font-extrabold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
-                >
-                  Concluir e Retornar à Loja
-                </button>
-              </div>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenWhatsAppWithSnapshot(purchasedSnapshot, false)}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+                    >
+                      <PhoneCall className="w-4 h-4 stroke-[1.5]" />
+                      Ir para o WhatsApp para Pagar
+                    </button>
+                  </div>
+
+                  <div className="pt-1">
+                    <button
+                      onClick={() => {
+                        onClose();
+                        setStep('FORM');
+                      }}
+                      className="bg-slate-900 text-white hover:bg-slate-800 font-extrabold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
+                    >
+                      Concluir e Retornar à Loja
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full mx-auto flex items-center justify-center shadow-xs">
+                    <CheckCircle2 className="w-7 h-7 stroke-[2]" />
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <h3 className="text-base font-black text-slate-900">Pagamento Confirmado com Sucesso!</h3>
+                    <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
+                      Sua compra foi aprovada e gravada no sistema! A nota fiscal foi enviada para <strong>{purchasedSnapshot?.email || email}</strong>.
+                    </p>
+                  </div>
+
+                  {/* Resumo do Pedido */}
+                  <div className="bg-slate-50 border border-slate-200/90 rounded-xl p-3 text-left space-y-2 text-xs">
+                    <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+                      <div>
+                        <span className="text-[9px] font-mono text-slate-500 uppercase">CÓDIGO DO PEDIDO</span>
+                        <p className="font-extrabold text-slate-900 text-xs">
+                          #{purchasedSnapshot?.orderId ? purchasedSnapshot.orderId.slice(0, 8) : (orderResult?.orderId ? orderResult.orderId.slice(0, 8) : '000000')}
+                        </p>
+                      </div>
+                      <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-extrabold px-2 py-0.5 rounded-md">
+                        PAID / PAGO VIA PIX
+                      </span>
+                    </div>
+
+                    <div className="space-y-1 text-xs">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase block">Itens Comprados:</span>
+                      {(purchasedSnapshot?.items || cart).map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-slate-700">
+                          <span className="truncate pr-2">• {item.quantity}x {item.product.nome}</span>
+                          <span className="font-semibold text-slate-900 shrink-0">
+                            {formatCurrency((typeof item.product.preco_venda === 'string' ? parseFloat(item.product.preco_venda) : item.product.preco_venda) * item.quantity)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-1.5 border-t border-slate-200 space-y-0.5">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-orange-600 stroke-[1.5]" /> Endereço de Entrega:
+                      </span>
+                      <p className="text-[11px] text-slate-800 font-medium">{purchasedSnapshot?.endereco || `${logradouro}, ${numero}`}</p>
+                    </div>
+
+                    <div className="pt-1.5 border-t border-slate-200 flex justify-between items-center">
+                      <span className="text-xs font-bold text-slate-700">Total Pago:</span>
+                      <span className="text-sm font-black text-emerald-600">
+                        {formatCurrency(purchasedSnapshot?.total || orderResult?.total || totalValor)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Botão de Envio WhatsApp */}
+                  <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl space-y-2">
+                    <p className="text-xs text-emerald-950 font-medium text-left">
+                      Quer enviar o comprovante com todos os dados da compra no WhatsApp da loja?
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenWhatsAppWithSnapshot(purchasedSnapshot, true)}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+                    >
+                      <PhoneCall className="w-4 h-4 stroke-[1.5]" />
+                      Enviar Comprovante pelo WhatsApp
+                    </button>
+                  </div>
+
+                  <div className="pt-1">
+                    <button
+                      onClick={() => {
+                        onClose();
+                        setStep('FORM');
+                      }}
+                      className="bg-slate-900 text-white hover:bg-slate-800 font-extrabold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
+                    >
+                      Concluir e Retornar à Loja
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

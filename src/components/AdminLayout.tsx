@@ -82,10 +82,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         if (res.ok) {
           const data = await res.json();
           const list = data.notifications || [];
+          const count = data.unreadCount !== undefined ? data.unreadCount : list.length;
           setNotifications(list);
 
           // Se houver novos pedidos pagos em relação ao ciclo anterior
-          if (list.length > prevNotificationCount.current && prevNotificationCount.current !== 0) {
+          if (count > prevNotificationCount.current && prevNotificationCount.current !== 0) {
             const latest = list[0];
             if (latest) {
               setToastAlert({
@@ -99,12 +100,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           }
 
           if (prevNotificationCount.current === 0) {
-            prevNotificationCount.current = list.length;
-          } else if (list.length > prevNotificationCount.current) {
-            prevNotificationCount.current = list.length;
+            prevNotificationCount.current = count;
+          } else if (count > prevNotificationCount.current) {
+            prevNotificationCount.current = count;
           }
 
-          setUnreadCount(list.length);
+          setUnreadCount(count);
         }
       } catch (err) {
         console.error('Erro no polling de notificações admin:', err);
@@ -123,9 +124,34 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     router.push('/admin/login');
   };
 
-  const handleMarkAllRead = () => {
+  const handleMarkAllRead = async () => {
     setUnreadCount(0);
+    setNotifications([]);
     setIsBellOpen(false);
+    try {
+      await fetch('/api/admin/orders/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAll: true }),
+      });
+    } catch (err) {
+      console.error('Erro ao marcar notificações como lidas no banco:', err);
+    }
+  };
+
+  const handleMarkSingleRead = async (orderId: string) => {
+    setIsBellOpen(false);
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+    setNotifications((prev) => prev.filter((n) => n.id !== orderId));
+    try {
+      await fetch('/api/admin/orders/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+    } catch (err) {
+      console.error('Erro ao marcar notificação individual como lida:', err);
+    }
   };
 
   if (!user) return null;
@@ -327,7 +353,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                       <Link
                         key={item.id}
                         href="/admin/orders"
-                        onClick={() => setIsBellOpen(false)}
+                        onClick={() => handleMarkSingleRead(item.id)}
                         className="p-3 hover:bg-slate-50 block transition-colors text-xs"
                       >
                         <div className="flex justify-between items-start">
@@ -348,7 +374,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 <div className="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
                   <Link
                     href="/admin/orders"
-                    onClick={() => setIsBellOpen(false)}
+                    onClick={handleMarkAllRead}
                     className="text-[11px] font-bold text-slate-900 hover:underline flex items-center justify-center gap-1"
                   >
                     Ver Todos os Pedidos no Painel <ExternalLink className="w-3 h-3 stroke-[1.5]" />
