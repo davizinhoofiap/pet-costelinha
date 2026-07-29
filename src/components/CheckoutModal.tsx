@@ -783,9 +783,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </div>
 
                   <div className="space-y-0.5">
-                    <h3 className="text-base font-black text-slate-900">Pedido Registrado com Sucesso!</h3>
+                    <h3 className="text-base font-black text-slate-900">Solicitação Enviada com Sucesso!</h3>
                     <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
-                      Sua solicitação foi gravada! Para concluir sua compra e realizar o pagamento, clique no botão abaixo e envie a mensagem no nosso WhatsApp.
+                      Sua solicitação foi gravada! Clique abaixo para ir ao WhatsApp e finalizar o pedido.
                     </p>
                   </div>
 
@@ -799,7 +799,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         </p>
                       </div>
                       <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md">
-                        AGUARDANDO ATENDIMENTO / PAGAMENTO VIA WHATSAPP
+                        PEDIDO VIA WHATSAPP
                       </span>
                     </div>
 
@@ -842,7 +842,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
                     >
                       <PhoneCall className="w-4 h-4 stroke-[1.5]" />
-                      Ir para o WhatsApp para Pagar
+                      Ir para o WhatsApp e Concluir Pedido
                     </button>
                   </div>
 

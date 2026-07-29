@@ -15,7 +15,9 @@ import {
   Check, 
   CheckCircle2,
   ExternalLink,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/masks';
 
@@ -28,6 +30,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
 
+  // Estado da Sidebar Retrátil (Collapsible)
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+
   // Central de Notificações
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -35,6 +40,22 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [toastAlert, setToastAlert] = useState<{ id: string; cliente: string; total: number } | null>(null);
 
   const prevNotificationCount = useRef<number>(0);
+
+  // Carregar preferência da sidebar salva no localStorage
+  useEffect(() => {
+    const savedCollapsed = localStorage.getItem('admin_sidebar_collapsed');
+    if (savedCollapsed === 'true') {
+      setIsCollapsed(true);
+    }
+  }, []);
+
+  const toggleSidebar = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('admin_sidebar_collapsed', String(next));
+      return next;
+    });
+  };
 
   // Som de Notificação de Vendas (Web Audio API sem assets externos)
   const playSalesChime = () => {
@@ -178,65 +199,98 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </div>
       )}
 
-      {/* Sidebar Compacta e Elegante (largura reduzida de 240px para 192px/208px) */}
-      <aside className="w-full md:w-52 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 shadow-2xs">
+      {/* SIDEBAR RETRÁTIL (COLLAPSIBLE SIDEBAR) */}
+      <aside 
+        className={`bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 shadow-2xs transition-all duration-300 ${
+          isCollapsed ? 'w-full md:w-16' : 'w-full md:w-56'
+        }`}
+      >
         <div>
-          {/* Header Sidebar */}
+          {/* Header Sidebar com Botão de Retrair/Expandir */}
           <div className="p-3 border-b border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-slate-900 text-white rounded-lg flex items-center justify-center font-bold">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <div className="w-7 h-7 bg-slate-900 text-white rounded-lg flex items-center justify-center font-bold shrink-0">
                 <Store className="w-3.5 h-3.5 stroke-[1.5]" />
               </div>
-              <div>
-                <span className="font-extrabold text-xs text-slate-900 block leading-tight">
-                  Pet Costelinha
-                </span>
-                <span className="text-[9px] font-semibold text-slate-400">Painel de Controle</span>
-              </div>
+              {!isCollapsed && (
+                <div className="truncate">
+                  <span className="font-extrabold text-xs text-slate-900 block leading-tight">
+                    Pet Costelinha
+                  </span>
+                  <span className="text-[9px] font-semibold text-slate-400">Painel de Controle</span>
+                </div>
+              )}
             </div>
+
+            {/* Botão de Retrair/Expandir Sidebar */}
+            <button
+              onClick={toggleSidebar}
+              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer shrink-0"
+              title={isCollapsed ? "Expandir Menu" : "Recolher Menu"}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="w-4 h-4 stroke-[2]" />
+              ) : (
+                <ChevronLeft className="w-4 h-4 stroke-[2]" />
+              )}
+            </button>
           </div>
 
           {/* User Info Compacto */}
-          <div className="p-2.5 m-2 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-[10px]">
+          <div className={`p-2.5 m-2 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2 ${isCollapsed ? 'justify-center p-2 m-1' : ''}`}>
+            <div className="w-6 h-6 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-[10px] shrink-0">
               {user.nome.charAt(0)}
             </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="text-[11px] font-bold text-slate-900 truncate">{user.nome}</p>
-              <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
-                {user.role}
-              </span>
-            </div>
+            {!isCollapsed && (
+              <div className="flex-1 overflow-hidden">
+                <p className="text-[11px] font-bold text-slate-900 truncate">{user.nome}</p>
+                <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                  {user.role}
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Navigation Links Compactos */}
+          {/* Navigation Links Compactos com Suporte a Ícones Centralizados no Modo Retraído */}
           <nav className="p-2 space-y-1">
             <Link
               href="/admin/dashboard"
-              className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+              title="Visão Geral"
+              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+                isCollapsed ? 'justify-center px-0' : ''
+              } ${
                 pathname === '/admin/dashboard'
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <LayoutDashboard className="w-4 h-4 stroke-[1.5]" />
-              <span>Visão Geral</span>
+              <LayoutDashboard className="w-4 h-4 stroke-[1.5] shrink-0" />
+              {!isCollapsed && <span>Visão Geral</span>}
             </Link>
 
             <Link
               href="/admin/orders"
+              title="Expedição"
               className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+                isCollapsed ? 'justify-center px-0 relative' : ''
+              } ${
                 pathname === '/admin/orders'
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="w-4 h-4 stroke-[1.5]" />
-                <span>Expedição</span>
+              <div className="flex items-center gap-2.5">
+                <ShoppingCart className="w-4 h-4 stroke-[1.5] shrink-0" />
+                {!isCollapsed && <span>Expedição</span>}
               </div>
               {unreadCount > 0 && (
-                <span className="bg-emerald-500 text-white font-mono text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+                <span
+                  className={`bg-emerald-500 text-white font-mono font-bold ${
+                    isCollapsed
+                      ? 'absolute -top-1 -right-1 text-[8px] w-4 h-4 rounded-full flex items-center justify-center border border-white'
+                      : 'text-[9px] px-1.5 py-0.5 rounded-full'
+                  }`}
+                >
                   {unreadCount}
                 </span>
               )}
@@ -245,14 +299,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             {(user.role === 'ADMIN' || user.role === 'GERENTE') && (
               <Link
                 href="/admin/products"
-                className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+                title="Produtos"
+                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+                  isCollapsed ? 'justify-center px-0' : ''
+                } ${
                   pathname === '/admin/products'
                     ? 'bg-slate-900 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                <Package className="w-4 h-4 stroke-[1.5]" />
-                <span>Produtos</span>
+                <Package className="w-4 h-4 stroke-[1.5] shrink-0" />
+                {!isCollapsed && <span>Produtos</span>}
               </Link>
             )}
 
@@ -260,46 +317,60 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               <>
                 <Link
                   href="/admin/users"
-                  className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+                  title="Equipe"
+                  className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+                    isCollapsed ? 'justify-center px-0' : ''
+                  } ${
                     pathname === '/admin/users'
                       ? 'bg-slate-900 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <Users className="w-4 h-4 stroke-[1.5]" />
-                  <span>Equipe</span>
+                  <Users className="w-4 h-4 stroke-[1.5] shrink-0" />
+                  {!isCollapsed && <span>Equipe</span>}
                 </Link>
 
                 <Link
                   href="/admin/settings"
-                  className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+                  title="Ajustes"
+                  className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+                    isCollapsed ? 'justify-center px-0' : ''
+                  } ${
                     pathname === '/admin/settings'
                       ? 'bg-slate-900 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <Settings className="w-4 h-4 stroke-[1.5]" />
-                  <span>Ajustes</span>
+                  <Settings className="w-4 h-4 stroke-[1.5] shrink-0" />
+                  {!isCollapsed && <span>Ajustes</span>}
                 </Link>
               </>
             )}
           </nav>
         </div>
 
-        {/* Footer Sidebar */}
+        {/* Footer Sidebar (Fixos Permanentemente no Rodapé em Todas as Rotas) */}
         <div className="p-2 border-t border-slate-100 space-y-0.5">
           <Link
             href="/"
-            className="w-full text-left text-[11px] font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50"
+            title="Voltar à Loja"
+            className={`w-full text-left text-[11px] font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 ${
+              isCollapsed ? 'justify-center px-0' : ''
+            }`}
           >
-            ← Voltar à Loja
+            <Store className="w-3.5 h-3.5 stroke-[1.5] shrink-0" />
+            {!isCollapsed && <span>← Voltar à Loja</span>}
           </Link>
 
           <button
             onClick={handleLogout}
-            className="w-full text-left text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-rose-50 cursor-pointer"
+            title="Sair da Conta"
+            className={`w-full text-left text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-rose-50 cursor-pointer ${
+              isCollapsed ? 'justify-center px-0' : ''
+            }`}
           >
-            <LogOut className="w-3.5 h-3.5 stroke-[1.5]" /> Sair
+            <LogOut className="w-3.5 h-3.5 stroke-[1.5] shrink-0" />
+            {!isCollapsed && <span>Sair</span>}
           </button>
         </div>
       </aside>
@@ -385,8 +456,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        {/* Conteúdo da Página Totalmente Amplo (sem limites artificiais) */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50">
+        {/* Conteúdo da Página Totalmente Amplo */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50 min-w-0">
           {children}
         </main>
       </div>
