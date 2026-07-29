@@ -260,18 +260,22 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               <Link
                 href="/admin/orders"
                 title="Expedição"
-                className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
-                  isCollapsed ? 'justify-center px-0 relative' : ''
-                } ${
+                className={`flex items-center ${
+                  isCollapsed ? 'justify-center px-0 relative' : 'justify-between px-2.5'
+                } py-2 rounded-lg text-xs font-bold transition-colors ${
                   pathname === '/admin/orders'
                     ? 'bg-slate-900 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                <div className="flex items-center gap-2.5 overflow-hidden">
-                  <ShoppingCart className="w-4 h-4 stroke-[1.5] shrink-0" />
-                  {!isCollapsed && <span className="whitespace-nowrap truncate">Expedição</span>}
-                </div>
+                {isCollapsed ? (
+                  <ShoppingCart className="w-4 h-4 stroke-[1.5] shrink-0 mx-auto" />
+                ) : (
+                  <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
+                    <ShoppingCart className="w-4 h-4 stroke-[1.5] shrink-0" />
+                    <span className="whitespace-nowrap truncate">Expedição</span>
+                  </div>
+                )}
                 {unreadCount > 0 && (
                   <span
                     className={`bg-emerald-500 text-white font-mono font-bold shrink-0 ${

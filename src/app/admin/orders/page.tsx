@@ -307,13 +307,18 @@ export default function AdminOrdersPage() {
 
         {/* Header Amplo */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-xl font-black text-slate-900 flex items-center gap-2.5">
-              <ShoppingCart className="w-6 h-6 text-slate-800 stroke-[1.5]" /> Gestão e Expedição de Pedidos
-            </h1>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-              Painel operacional completo para Gerente e Atendentes. Acompanhe do pagamento até a entrega ao cliente.
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-slate-100 border border-slate-200/80 rounded-xl text-slate-800 flex items-center justify-center shrink-0">
+              <ShoppingCart className="w-5 h-5 stroke-[1.5]" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black text-slate-900 leading-tight">
+                Gestão e Expedição de Pedidos
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                Painel operacional completo para Gerente e Atendentes. Acompanhe do pagamento até a entrega ao cliente.
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
