@@ -303,8 +303,8 @@ export default function AdminOrdersPage() {
         </div>
 
         {/* CONTAINER DA TABELA DE PEDIDOS */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden w-full">
-          <div className="overflow-x-auto w-full">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden w-full max-w-full">
+          <div className="overflow-x-auto w-full max-w-full">
             <table className="w-full text-left text-xs border-collapse table-auto">
               <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200/80">
                 <tr>
