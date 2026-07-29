@@ -86,7 +86,7 @@ export default function AdminLoginPage() {
             <Store className="w-5 h-5 stroke-[1.5]" />
           </div>
           <h1 className="text-lg font-bold tracking-tight text-slate-900">
-            Painel Administrativo RBAC
+            Painel Administrativo
           </h1>
           <p className="text-xs text-slate-500">
             Informe suas credenciais ou continue com o Google

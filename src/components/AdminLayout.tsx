@@ -199,177 +199,188 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </div>
       )}
 
-      {/* SIDEBAR RETRÁTIL (COLLAPSIBLE SIDEBAR COM OVERFLOW-X-HIDDEN PARA ELIMINAR GLITCH VISUAL) */}
-      <aside 
-        className={`bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 shadow-2xs transition-all duration-300 ease-in-out overflow-x-hidden relative ${
-          isCollapsed ? 'w-full md:w-16' : 'w-full md:w-56'
-        }`}
-      >
-        <div>
-          {/* Header Sidebar com Botão de Retrair/Expandir */}
-          <div className="p-3 border-b border-slate-100 flex items-center justify-between min-h-[57px]">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <div className="w-7 h-7 bg-slate-900 text-white rounded-lg flex items-center justify-center font-bold shrink-0">
-                <Store className="w-3.5 h-3.5 stroke-[1.5]" />
+      {/* CONTAINER RELATIVE DA SIDEBAR PARA O BOTÃO DE TOGGLE FICAR PERFEITAMENTE SOBREPOSTO */}
+      <div className="relative shrink-0">
+        {/* SIDEBAR RETRÁTIL (COLLAPSIBLE SIDEBAR) */}
+        <aside 
+          className={`bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 shadow-2xs transition-all duration-300 ease-in-out overflow-x-hidden relative min-h-screen ${
+            isCollapsed ? 'w-full md:w-16' : 'w-full md:w-56'
+          }`}
+        >
+          <div>
+            {/* Header Sidebar */}
+            <div className="p-3 border-b border-slate-100 flex items-center justify-between min-h-[57px]">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <div className="w-7 h-7 bg-slate-900 text-white rounded-lg flex items-center justify-center font-bold shrink-0">
+                  <Store className="w-3.5 h-3.5 stroke-[1.5]" />
+                </div>
+                {!isCollapsed && (
+                  <div className="truncate whitespace-nowrap">
+                    <span className="font-extrabold text-xs text-slate-900 block leading-tight">
+                      Pet Costelinha
+                    </span>
+                    <span className="text-[9px] font-semibold text-slate-400">Painel de Controle</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* User Info Compacto */}
+            <div className={`p-2.5 m-2 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2 ${isCollapsed ? 'justify-center p-2 m-1' : ''}`}>
+              <div className="w-6 h-6 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-[10px] shrink-0">
+                {user.nome.charAt(0)}
               </div>
               {!isCollapsed && (
-                <div className="truncate whitespace-nowrap">
-                  <span className="font-extrabold text-xs text-slate-900 block leading-tight">
-                    Pet Costelinha
+                <div className="flex-1 overflow-hidden whitespace-nowrap">
+                  <p className="text-[11px] font-bold text-slate-900 truncate">{user.nome}</p>
+                  <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block truncate">
+                    {user.role}
                   </span>
-                  <span className="text-[9px] font-semibold text-slate-400">Painel de Controle</span>
                 </div>
               )}
             </div>
 
-            {/* Botão de Retrair/Expandir Sidebar */}
-            <button
-              onClick={toggleSidebar}
-              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer shrink-0 ml-1"
-              title={isCollapsed ? "Expandir Menu" : "Recolher Menu"}
-            >
-              {isCollapsed ? (
-                <ChevronRight className="w-4 h-4 stroke-[2]" />
-              ) : (
-                <ChevronLeft className="w-4 h-4 stroke-[2]" />
-              )}
-            </button>
-          </div>
-
-          {/* User Info Compacto */}
-          <div className={`p-2.5 m-2 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2 ${isCollapsed ? 'justify-center p-2 m-1' : ''}`}>
-            <div className="w-6 h-6 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-[10px] shrink-0">
-              {user.nome.charAt(0)}
-            </div>
-            {!isCollapsed && (
-              <div className="flex-1 overflow-hidden whitespace-nowrap">
-                <p className="text-[11px] font-bold text-slate-900 truncate">{user.nome}</p>
-                <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block truncate">
-                  {user.role}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Navigation Links Compactos com Suporte a Ícones Centralizados no Modo Retraído */}
-          <nav className="p-2 space-y-1">
-            <Link
-              href="/admin/dashboard"
-              title="Visão Geral"
-              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
-                isCollapsed ? 'justify-center px-0' : ''
-              } ${
-                pathname === '/admin/dashboard'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4 stroke-[1.5] shrink-0" />
-              {!isCollapsed && <span className="whitespace-nowrap truncate">Visão Geral</span>}
-            </Link>
-
-            <Link
-              href="/admin/orders"
-              title="Expedição"
-              className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
-                isCollapsed ? 'justify-center px-0 relative' : ''
-              } ${
-                pathname === '/admin/orders'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2.5 overflow-hidden">
-                <ShoppingCart className="w-4 h-4 stroke-[1.5] shrink-0" />
-                {!isCollapsed && <span className="whitespace-nowrap truncate">Expedição</span>}
-              </div>
-              {unreadCount > 0 && (
-                <span
-                  className={`bg-emerald-500 text-white font-mono font-bold shrink-0 ${
-                    isCollapsed
-                      ? 'absolute -top-1 -right-1 text-[8px] w-4 h-4 rounded-full flex items-center justify-center border border-white'
-                      : 'text-[9px] px-1.5 py-0.5 rounded-full'
-                  }`}
-                >
-                  {unreadCount}
-                </span>
-              )}
-            </Link>
-
-            {(user.role === 'ADMIN' || user.role === 'GERENTE') && (
+            {/* Navigation Links Compactos com Suporte a Ícones Centralizados no Modo Retraído */}
+            <nav className="p-2 space-y-1">
               <Link
-                href="/admin/products"
-                title="Produtos"
+                href="/admin/dashboard"
+                title="Visão Geral"
                 className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
                   isCollapsed ? 'justify-center px-0' : ''
                 } ${
-                  pathname === '/admin/products'
+                  pathname === '/admin/dashboard'
                     ? 'bg-slate-900 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                <Package className="w-4 h-4 stroke-[1.5] shrink-0" />
-                {!isCollapsed && <span className="whitespace-nowrap truncate">Produtos</span>}
+                <LayoutDashboard className="w-4 h-4 stroke-[1.5] shrink-0" />
+                {!isCollapsed && <span className="whitespace-nowrap truncate">Visão Geral</span>}
               </Link>
-            )}
 
-            {user.role === 'ADMIN' && (
-              <>
+              <Link
+                href="/admin/orders"
+                title="Expedição"
+                className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+                  isCollapsed ? 'justify-center px-0 relative' : ''
+                } ${
+                  pathname === '/admin/orders'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 overflow-hidden">
+                  <ShoppingCart className="w-4 h-4 stroke-[1.5] shrink-0" />
+                  {!isCollapsed && <span className="whitespace-nowrap truncate">Expedição</span>}
+                </div>
+                {unreadCount > 0 && (
+                  <span
+                    className={`bg-emerald-500 text-white font-mono font-bold shrink-0 ${
+                      isCollapsed
+                        ? 'absolute -top-1 -right-1 text-[8px] w-4 h-4 rounded-full flex items-center justify-center border border-white'
+                        : 'text-[9px] px-1.5 py-0.5 rounded-full'
+                    }`}
+                  >
+                    {unreadCount}
+                  </span>
+                )}
+              </Link>
+
+              {(user.role === 'ADMIN' || user.role === 'GERENTE') && (
                 <Link
-                  href="/admin/users"
-                  title="Equipe"
+                  href="/admin/products"
+                  title="Produtos"
                   className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
                     isCollapsed ? 'justify-center px-0' : ''
                   } ${
-                    pathname === '/admin/users'
+                    pathname === '/admin/products'
                       ? 'bg-slate-900 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <Users className="w-4 h-4 stroke-[1.5] shrink-0" />
-                  {!isCollapsed && <span className="whitespace-nowrap truncate">Equipe</span>}
+                  <Package className="w-4 h-4 stroke-[1.5] shrink-0" />
+                  {!isCollapsed && <span className="whitespace-nowrap truncate">Produtos</span>}
                 </Link>
+              )}
 
-                <Link
-                  href="/admin/settings"
-                  title="Ajustes"
-                  className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
-                    isCollapsed ? 'justify-center px-0' : ''
-                  } ${
-                    pathname === '/admin/settings'
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Settings className="w-4 h-4 stroke-[1.5] shrink-0" />
-                  {!isCollapsed && <span className="whitespace-nowrap truncate">Ajustes</span>}
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
+              {user.role === 'ADMIN' && (
+                <>
+                  <Link
+                    href="/admin/users"
+                    title="Equipe"
+                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+                      isCollapsed ? 'justify-center px-0' : ''
+                    } ${
+                      pathname === '/admin/users'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Users className="w-4 h-4 stroke-[1.5] shrink-0" />
+                    {!isCollapsed && <span className="whitespace-nowrap truncate">Equipe</span>}
+                  </Link>
 
-        {/* Footer Sidebar (Apenas Voltar à Loja) */}
-        <div className="p-2 border-t border-slate-100 space-y-0.5">
-          <Link
-            href="/"
-            title="Voltar à Loja"
-            className={`w-full text-left text-[11px] font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 ${
-              isCollapsed ? 'justify-center px-0' : ''
-            }`}
-          >
-            <Store className="w-3.5 h-3.5 stroke-[1.5] shrink-0" />
-            {!isCollapsed && <span className="whitespace-nowrap truncate">← Voltar à Loja</span>}
-          </Link>
-        </div>
-      </aside>
+                  <Link
+                    href="/admin/settings"
+                    title="Ajustes"
+                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors ${
+                      isCollapsed ? 'justify-center px-0' : ''
+                    } ${
+                      pathname === '/admin/settings'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Settings className="w-4 h-4 stroke-[1.5] shrink-0" />
+                    {!isCollapsed && <span className="whitespace-nowrap truncate">Ajustes</span>}
+                  </Link>
+                </>
+              )}
+            </nav>
+          </div>
+
+          {/* Footer Sidebar (Apenas Voltar à Loja) */}
+          <div className="p-2 border-t border-slate-100 space-y-0.5">
+            <Link
+              href="/"
+              title="Voltar à Loja"
+              className={`w-full text-left text-[11px] font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 ${
+                isCollapsed ? 'justify-center px-0' : ''
+              }`}
+            >
+              <Store className="w-3.5 h-3.5 stroke-[1.5] shrink-0" />
+              {!isCollapsed && <span className="whitespace-nowrap truncate">← Voltar à Loja</span>}
+            </Link>
+          </div>
+        </aside>
+
+        {/* BOTÃO DE TOGGLE DA SIDEBAR PERFEITAMENTE POSICIONADO COM Z-50, BORDAS SUAVES E FUNDO BRANCO */}
+        <button
+          onClick={toggleSidebar}
+          className="hidden md:flex absolute -right-3.5 top-4 z-50 bg-white border border-slate-200 text-slate-700 hover:text-slate-900 shadow-md rounded-full p-1.5 cursor-pointer hover:bg-slate-50 transition-colors items-center justify-center"
+          title={isCollapsed ? "Expandir Menu" : "Recolher Menu"}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
+          ) : (
+            <ChevronLeft className="w-3.5 h-3.5 stroke-[2.5]" />
+          )}
+        </button>
+      </div>
 
       {/* Area Principal Ampliada */}
       <div className="flex-1 flex flex-col min-w-0 max-w-full overflow-x-hidden">
-        {/* Top Header Bar com Sininho de Notificações E Botão Sair da Conta */}
+        {/* Top Header Bar com LOGO OFICIAL DA LOJA, Sininho de Notificações E Botão Sair da Conta */}
         <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-2xs">
-          <div className="text-xs font-bold text-slate-600 flex items-center gap-2">
-            <span>Painel da Loja Pet Costelinha</span>
+          {/* Logo da Loja + Nome no Header */}
+          <div className="flex items-center gap-2.5">
+            <img 
+              src="/logo.png" 
+              alt="Pet Costelinha Logo" 
+              className="w-7 h-7 object-contain rounded-lg shadow-2xs border border-slate-100 bg-white p-0.5 shrink-0" 
+            />
+            <span className="text-xs font-bold text-slate-800">
+              Painel da Loja Pet Costelinha
+            </span>
           </div>
 
           <div className="flex items-center gap-3">

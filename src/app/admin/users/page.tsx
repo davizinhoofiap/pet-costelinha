@@ -169,7 +169,7 @@ export default function AdminUsersPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <Users className="w-5 h-5 text-slate-700 stroke-[1.5]" /> Gestão de Usuários & Clientes (RBAC)
+              <Users className="w-5 h-5 text-slate-700 stroke-[1.5]" /> Gestão de Usuários & Permissões
             </h1>
             <p className="text-xs text-slate-500">
               Gerencie colaboradores e exclua perfis de clientes inativos para manter o banco enxuto.
@@ -366,7 +366,7 @@ export default function AdminUsersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Cargo / Nível de Acesso (RBAC) *</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Cargo / Nível de Acesso *</label>
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
