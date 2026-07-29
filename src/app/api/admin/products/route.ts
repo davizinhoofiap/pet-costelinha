@@ -96,16 +96,32 @@ export async function DELETE(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
+    const productIdsParam = searchParams.get('productIds');
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID do produto é obrigatório' }, { status: 400 });
+    let idsToDelete: string[] = [];
+
+    if (id) {
+      idsToDelete.push(id);
+    } else if (productIdsParam) {
+      idsToDelete = productIdsParam.split(',').filter(Boolean);
+    } else {
+      const body = await req.json().catch(() => ({}));
+      if (Array.isArray(body.productIds) && body.productIds.length > 0) {
+        idsToDelete = body.productIds;
+      }
     }
 
-    await prisma.product.delete({ where: { id: String(id) } });
+    if (idsToDelete.length === 0) {
+      return NextResponse.json({ error: 'ID ou lista de produtos é obrigatória' }, { status: 400 });
+    }
 
-    return NextResponse.json({ success: true });
+    const result = await prisma.product.deleteMany({
+      where: { id: { in: idsToDelete } },
+    });
+
+    return NextResponse.json({ success: true, count: result.count });
   } catch (error) {
-    console.error('Erro ao excluir produto:', error);
-    return NextResponse.json({ error: 'Erro ao excluir produto' }, { status: 500 });
+    console.error('Erro ao excluir produtos:', error);
+    return NextResponse.json({ error: 'Erro ao excluir produto(s) do banco de dados.' }, { status: 500 });
   }
 }

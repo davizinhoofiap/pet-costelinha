@@ -51,7 +51,6 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    // passa os dados no Zod pra garantir que o e-mail e senha vieram certinhos
     const parseResult = userCreateSchema.safeParse(body);
     if (!parseResult.success) {
       const errorMsg = parseResult.error.issues[0]?.message || 'Dados inválidos fornecidos.';
@@ -60,7 +59,6 @@ export async function POST(req: Request) {
 
     const { nome, email, cpf, telefone, senha, role } = parseResult.data;
 
-    // confere se o e-mail ou o telefone já não tão cadastrados em outra conta
     const existingEmailUser = await prisma.user.findUnique({ where: { email } });
     const existingPhoneUser = telefone ? await prisma.user.findFirst({ where: { telefone } }) : null;
 
@@ -198,7 +196,6 @@ export async function PUT(req: Request) {
   }
 }
 
-// exclusão segura do cliente: esconde os dados pessoais nos pedidos antigos e apaga a conta pra respeitar a LGPD
 export async function DELETE(req: Request) {
   const requestId = req.headers.get('x-request-id') || crypto.randomUUID();
 
@@ -210,46 +207,52 @@ export async function DELETE(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
+    const userIdsParam = searchParams.get('userIds');
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID do usuário é obrigatório' }, { status: 400 });
+    let idsToDelete: string[] = [];
+
+    if (id) {
+      idsToDelete.push(id);
+    } else if (userIdsParam) {
+      idsToDelete = userIdsParam.split(',').filter(Boolean);
+    } else {
+      const body = await req.json().catch(() => ({}));
+      if (Array.isArray(body.userIds) && body.userIds.length > 0) {
+        idsToDelete = body.userIds;
+      }
     }
 
-    if (id === admin.userId) {
-      return NextResponse.json({ error: 'Você não pode excluir a sua própria conta ativa.' }, { status: 400 });
+    // Não permite excluir a própria conta ativa do admin logado
+    idsToDelete = idsToDelete.filter((targetId) => targetId !== admin.userId);
+
+    if (idsToDelete.length === 0) {
+      return NextResponse.json({ error: 'Selecione pelo menos um usuário válido para exclusão.' }, { status: 400 });
     }
 
-    // tira os dados pessoais do cliente dos pedidos antigos pra manter o histórico de vendas sem expor a pessoa
-    await logger.measureTime('Admin.anonymizeUserOrdersLGPD', async () => {
-      await prisma.order.updateMany({
-        where: { user_id: String(id) },
-        data: {
-          user_id: null,
-          cliente_nome: 'CLIENTE_ANONIMIZADO_LGPD',
-          cliente_email: 'anonimizado@lgpd.local',
-          cliente_cpf: '000.000.000-00',
-          cliente_telefone: '(00) 00000-0000',
-          endereco_entrega: 'ENDEREÇO_ANONIMIZADO_LGPD',
-        },
-      });
-    }, { requestId, targetUserId: id });
-
-    // apaga o usuário do banco de dados definitivamente
-    await logger.measureTime('Admin.deleteUserHardLGPD', async () => {
-      await prisma.user.delete({ where: { id: String(id) } });
-    }, { requestId, targetUserId: id });
-
-    logger.info('✅ Usuário excluído e pedidos passados anonimizados nos termos da LGPD', {
-      requestId,
-      deletedUserId: id,
+    // Anonimização LGPD nos pedidos passados dos usuários
+    await prisma.order.updateMany({
+      where: { user_id: { in: idsToDelete } },
+      data: {
+        user_id: null,
+        cliente_nome: 'CLIENTE_ANONIMIZADO_LGPD',
+        cliente_email: 'anonimizado@lgpd.local',
+        cliente_cpf: '000.000.000-00',
+        cliente_telefone: '(00) 00000-0000',
+        endereco_entrega: 'ENDEREÇO_ANONIMIZADO_LGPD',
+      },
     });
 
-    return NextResponse.json(
-      { success: true, message: 'Conta excluída permanentemente e pedidos antigos anonimizados nos termos da LGPD.' },
-      { headers: { 'X-Request-ID': requestId } }
-    );
+    const result = await prisma.user.deleteMany({
+      where: { id: { in: idsToDelete } },
+    });
+
+    return NextResponse.json({
+      success: true,
+      count: result.count,
+      message: `${result.count} usuário(s) excluído(s) permanentemente.`,
+    });
   } catch (error: any) {
-    logger.error('Erro na exclusão segura LGPD de usuário', { requestId, error: error.message });
-    return NextResponse.json({ error: 'Erro ao executar exclusão segura LGPD' }, { status: 500 });
+    logger.error('Erro na exclusão segura de usuários', { requestId, error: error.message });
+    return NextResponse.json({ error: 'Erro ao executar exclusão segura.' }, { status: 500 });
   }
 }

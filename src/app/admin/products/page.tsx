@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { AdminLayout } from '@/components/AdminLayout';
-import { Package, Plus, Edit2, Trash2, Search, X, AlertTriangle, Filter, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2, Search, X, AlertTriangle, Filter, Sparkles, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
 import { TableRowSkeleton } from '@/components/ui/Skeleton';
 import { formatCurrency } from '@/lib/masks';
 
@@ -12,6 +12,12 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('ALL');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Estado de Seleção em Lote (Bulk Select)
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -30,6 +36,11 @@ export default function AdminProductsPage() {
     loadData();
   }, []);
 
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -41,6 +52,7 @@ export default function AdminProductsPage() {
       if (prodRes.ok) {
         const prodData = await prodRes.json();
         setProducts(prodData);
+        setSelectedProductIds([]);
       }
       if (catRes.ok) {
         const catData = await catRes.json();
@@ -51,6 +63,62 @@ export default function AdminProductsPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch = 
+      p.nome.toLowerCase().includes(search.toLowerCase()) ||
+      p.categoria?.nome.toLowerCase().includes(search.toLowerCase());
+
+    const matchesCategory = 
+      selectedCategoryFilter === 'ALL' || p.categoria_id === selectedCategoryFilter;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  // Funções de Seleção em Massa (Bulk Selection)
+  const isAllSelected = filteredProducts.length > 0 && selectedProductIds.length === filteredProducts.length;
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedProductIds([]);
+    } else {
+      setSelectedProductIds(filteredProducts.map((p) => p.id));
+    }
+  };
+
+  const handleToggleSelectProduct = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedProductIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleConfirmBulkDelete = async () => {
+    if (selectedProductIds.length === 0) return;
+
+    try {
+      setIsDeleting(true);
+      const res = await fetch('/api/admin/products', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productIds: selectedProductIds }),
+      });
+
+      if (res.ok) {
+        setProducts((prev) => prev.filter((p) => !selectedProductIds.includes(p.id)));
+        showToast(`${selectedProductIds.length} produto(s) excluído(s) do catálogo com sucesso!`);
+        setSelectedProductIds([]);
+        setIsBulkDeleteModalOpen(false);
+      } else {
+        showToast('Erro ao excluir produtos selecionados.');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Erro ao conectar ao servidor.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -112,6 +180,7 @@ export default function AdminProductsPage() {
       }
 
       setIsModalOpen(false);
+      showToast(editingId ? 'Produto atualizado com sucesso!' : 'Novo produto cadastrado no estoque!');
       loadData();
     } catch (err: any) {
       setModalError(err.message || 'Erro ao salvar');
@@ -125,26 +194,24 @@ export default function AdminProductsPage() {
       const res = await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         setProducts((prev) => prev.filter((p) => p.id !== id));
+        setSelectedProductIds((prev) => prev.filter((item) => item !== id));
+        showToast('Produto excluído com sucesso!');
       }
     } catch (err) {
       console.error(err);
     }
   };
 
-  const filteredProducts = products.filter((p) => {
-    const matchesSearch = 
-      p.nome.toLowerCase().includes(search.toLowerCase()) ||
-      p.categoria?.nome.toLowerCase().includes(search.toLowerCase());
-
-    const matchesCategory = 
-      selectedCategoryFilter === 'ALL' || p.categoria_id === selectedCategoryFilter;
-
-    return matchesSearch && matchesCategory;
-  });
-
   return (
     <AdminLayout>
-      <div className="space-y-6 font-sans max-w-7xl mx-auto">
+      <div className="space-y-6 font-sans max-w-7xl mx-auto relative">
+        {/* TOAST DE NOTIFICAÇÃO */}
+        {toastMessage && (
+          <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 text-xs font-bold flex items-center gap-2.5 animate-bounce">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 stroke-[2.5]" /> {toastMessage}
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
           <div>
@@ -164,25 +231,57 @@ export default function AdminProductsPage() {
           </button>
         </div>
 
-        {/* Filtros e Busca */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row items-center gap-4">
+        {/* Filtros, Busca e Controle de Seleção Simplificado */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3">
+          {/* Botão de Selecionar Todos / Excluir Selecionados Compacto */}
+          <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
+            <button
+              type="button"
+              onClick={handleSelectAll}
+              className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                isAllSelected
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                  : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                onChange={() => {}}
+                className="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 cursor-pointer pointer-events-none"
+              />
+              <span>Selecionar Todos ({filteredProducts.length})</span>
+            </button>
+
+            {selectedProductIds.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(true)}
+                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5 stroke-[1.5]" />
+                Excluir Selecionados ({selectedProductIds.length})
+              </button>
+            )}
+          </div>
+
           <div className="relative flex-1 w-full">
             <input
               type="text"
               placeholder="Buscar por nome do produto ou especificações..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-medium"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-medium"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 stroke-[1.5]" />
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
             <Filter className="w-4 h-4 text-slate-400 stroke-[1.5]" />
             <select
               value={selectedCategoryFilter}
               onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer w-full md:w-auto"
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer w-full md:w-auto"
             >
               <option value="ALL">Todas as Categorias ({products.length})</option>
               {categories.map((cat) => (
@@ -195,11 +294,20 @@ export default function AdminProductsPage() {
         </div>
 
         {/* Tabela Espaçosa e Legível */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden max-w-full">
+          <div className="overflow-x-auto w-full max-w-full">
+            <table className="w-full text-left text-xs border-collapse table-auto">
               <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200/80">
                 <tr>
+                  <th className="py-4 px-3.5 w-12 text-center">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      onChange={handleSelectAll}
+                      className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400 cursor-pointer"
+                      title="Selecionar Todos os Produtos"
+                    />
+                  </th>
                   <th className="py-4 px-5 min-w-[280px]">Produto & Foto</th>
                   <th className="py-4 px-5 min-w-[140px]">Categoria</th>
                   <th className="py-4 px-5 min-w-[120px]">Preço de Custo</th>
@@ -214,7 +322,7 @@ export default function AdminProductsPage() {
                   [...Array(4)].map((_, i) => <TableRowSkeleton key={i} />)
                 ) : filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-12 text-center text-slate-500 font-medium">
+                    <td colSpan={8} className="p-12 text-center text-slate-500 font-medium">
                       Nenhum produto localizado com os filtros selecionados.
                     </td>
                   </tr>
@@ -224,9 +332,24 @@ export default function AdminProductsPage() {
                     const venda = Number(prod.preco_venda);
                     const margemReais = venda - custo;
                     const margemPercent = venda > 0 ? ((venda - custo) / venda) * 100 : 0;
+                    const isSelected = selectedProductIds.includes(prod.id);
 
                     return (
-                      <tr key={prod.id} className="hover:bg-slate-50/80 transition-colors">
+                      <tr 
+                        key={prod.id} 
+                        className={`transition-colors ${
+                          isSelected ? 'bg-slate-100/90 hover:bg-slate-100' : 'hover:bg-slate-50/80'
+                        }`}
+                      >
+                        <td className="py-4 px-3.5 w-12 text-center" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => handleToggleSelectProduct(prod.id, e as any)}
+                            className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400 cursor-pointer"
+                          />
+                        </td>
+
                         <td className="py-4 px-5 flex items-center gap-3.5">
                           <img
                             src={prod.imagem_url}
@@ -268,32 +391,30 @@ export default function AdminProductsPage() {
 
                         <td className="py-4 px-5">
                           {prod.estoque <= 5 ? (
-                            <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-1 rounded-lg text-[11px] font-extrabold">
-                              <AlertTriangle className="w-3.5 h-3.5 text-rose-600 stroke-[1.5]" /> {prod.estoque} un. (Baixo)
+                            <span className="bg-rose-50 text-rose-800 border border-rose-200 font-bold px-2.5 py-1 rounded-lg text-[11px] inline-flex items-center gap-1">
+                              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> {prod.estoque} un (Baixo)
                             </span>
                           ) : (
-                            <span className="text-slate-900 font-bold bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg text-[11px]">
-                              {prod.estoque} un.
+                            <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold px-2.5 py-1 rounded-lg text-[11px]">
+                              {prod.estoque} un no estoque
                             </span>
                           )}
                         </td>
 
                         <td className="py-4 px-5 text-right space-x-1">
                           <button
-                            type="button"
                             onClick={() => handleOpenEdit(prod)}
-                            className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-                            title="Editar Especificações"
+                            className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                            title="Editar Produto"
                           >
-                            <Edit2 className="w-4 h-4 stroke-[1.5]" />
+                            <Edit2 className="w-3.5 h-3.5 stroke-[1.5]" />
                           </button>
                           <button
-                            type="button"
                             onClick={() => handleDeleteProduct(prod.id)}
-                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                            className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg transition-colors cursor-pointer"
                             title="Excluir Produto"
                           >
-                            <Trash2 className="w-4 h-4 stroke-[1.5]" />
+                            <Trash2 className="w-3.5 h-3.5 stroke-[1.5]" />
                           </button>
                         </td>
                       </tr>
@@ -305,171 +426,192 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {/* MODAL DE CADASTRO / EDIÇÃO ESPAÇOSO E ORGANIZADO */}
+        {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO EM MASSA DE PRODUTOS */}
+        {isBulkDeleteModalOpen && (
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200 p-6 space-y-4">
+              <div className="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto">
+                <AlertTriangle className="w-6 h-6 stroke-[2]" />
+              </div>
+
+              <div className="text-center space-y-1.5">
+                <h3 className="text-base font-extrabold text-slate-900">
+                  Excluir {selectedProductIds.length} {selectedProductIds.length === 1 ? 'Produto Selecionado' : 'Produtos Selecionados'}?
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Tem certeza que deseja apagar <strong>{selectedProductIds.length} {selectedProductIds.length === 1 ? 'produto selecionado' : 'produtos selecionados'}</strong> do catálogo da loja? Esta ação é irreversível.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsBulkDeleteModalOpen(false)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={handleConfirmBulkDelete}
+                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Confirmar Exclusão
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Adicionar / Editar Produto */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white border border-slate-200 w-full max-w-2xl rounded-2xl p-6 space-y-5 text-slate-900 relative shadow-2xl my-6">
-              <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-slate-900 text-white rounded-xl">
-                    <Package className="w-5 h-5 stroke-[1.5]" />
+            <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden border border-slate-200 relative my-6">
+              <div className="bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-slate-800 rounded-xl">
+                    <Package className="w-5 h-5 text-white stroke-[1.5]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">
-                      {editingId ? 'Editar Produto' : 'Cadastrar Novo Item no Estoque'}
-                    </h3>
-                    <p className="text-[11px] text-slate-400">Preencha as especificações comerciais</p>
+                    <h2 className="text-sm font-bold text-white">
+                      {editingId ? 'Editar Produto do Catálogo' : 'Cadastrar Novo Produto no Estoque'}
+                    </h2>
+                    <p className="text-[11px] text-slate-400">Preencha os dados comerciais e de estoque</p>
                   </div>
                 </div>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer"
+                >
                   <X className="w-5 h-5 stroke-[1.5]" />
                 </button>
               </div>
 
-              {modalError && (
-                <p className="text-xs text-rose-700 bg-rose-50 p-3 rounded-xl border border-rose-200 font-semibold">
-                  {modalError}
-                </p>
-              )}
+              <form onSubmit={handleSaveProduct} className="p-5 space-y-4 text-xs">
+                {modalError && (
+                  <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-xl text-xs font-semibold">
+                    {modalError}
+                  </div>
+                )}
 
-              <form onSubmit={handleSaveProduct} className="space-y-4">
-                {/* Nome do Produto */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Nome Comercial do Produto *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Nome do Produto *</label>
                   <input
                     type="text"
                     required
-                    placeholder="Ex: Ração Premier Cães Adultos 15kg"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-medium"
+                    placeholder="Ex: Ração Magnus Todo Dia Carne 15kg"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
                   />
                 </div>
 
-                {/* Categoria e Estoque */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Descrição Comercial</label>
+                  <textarea
+                    rows={2}
+                    value={descricao}
+                    onChange={(e) => setDescricao(e.target.value)}
+                    placeholder="Detalhes sobre o produto, sabor, raça recomendada..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Categoria *</label>
+                    <label className="block font-bold text-slate-700 mb-1">Preço de Custo (R$) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={precoCusto}
+                      onChange={(e) => setPrecoCusto(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Preço de Venda (R$) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={precoVenda}
+                      onChange={(e) => setPrecoVenda(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Estoque (Unidades) *</label>
+                    <input
+                      type="number"
+                      required
+                      value={estoque}
+                      onChange={(e) => setEstoque(e.target.value)}
+                      placeholder="10"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Categoria *</label>
                     <select
                       value={categoriaId}
                       onChange={(e) => setCategoriaId(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 cursor-pointer"
                     >
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.nome}
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.nome}
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Estoque (Unidades) *</label>
+                    <label className="block font-bold text-slate-700 mb-1">URL da Imagem</label>
                     <input
-                      type="number"
-                      required
-                      min="0"
-                      value={estoque}
-                      onChange={(e) => setEstoque(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-bold"
-                    />
-                  </div>
-                </div>
-
-                {/* Preço de Custo e Preço de Venda */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Preço de Custo (R$) *</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      required
-                      placeholder="0.00"
-                      value={precoCusto}
-                      onChange={(e) => setPrecoCusto(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-mono font-semibold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Preço de Venda (R$) *</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      required
-                      placeholder="0.00"
-                      value={precoVenda}
-                      onChange={(e) => setPrecoVenda(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 font-mono font-bold text-emerald-700"
-                    />
-                  </div>
-                </div>
-
-                {/* Descrição Comercial */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Descrição Comercial</label>
-                  <textarea
-                    rows={2}
-                    placeholder="Resumo dos benefícios e características do produto..."
-                    value={descricao}
-                    onChange={(e) => setDescricao(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
-                  />
-                </div>
-
-                {/* URL da Imagem + Preview */}
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-700">URL da Imagem do Produto</label>
-                  <div className="flex gap-3 items-center">
-                    <input
-                      type="url"
-                      placeholder="https://..."
+                      type="text"
                       value={imagemUrl}
                       onChange={(e) => setImagemUrl(e.target.value)}
-                      className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      placeholder="https://..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
                     />
-                    {imagemUrl ? (
-                      <img
-                        src={imagemUrl}
-                        alt="Preview"
-                        className="w-10 h-10 object-contain bg-white border border-slate-200 rounded-lg shrink-0 p-0.5"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 shrink-0">
-                        <ImageIcon className="w-5 h-5 stroke-[1.5]" />
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                {/* Checkbox Destaque */}
-                <div className="flex items-center gap-2.5 pt-1">
+                <div className="flex items-center gap-2 pt-1">
                   <input
                     type="checkbox"
-                    id="destaqueCheck"
+                    id="destaque"
                     checked={destaque}
                     onChange={(e) => setDestaque(e.target.checked)}
-                    className="w-4 h-4 accent-slate-900 rounded cursor-pointer"
+                    className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400 cursor-pointer"
                   />
-                  <label htmlFor="destaqueCheck" className="text-xs font-bold text-slate-800 cursor-pointer">
-                    Destacar na primeira página da loja (Destaques da Semana)
+                  <label htmlFor="destaque" className="text-xs font-bold text-slate-800 cursor-pointer">
+                    Destacar produto na vitrine principal da loja
                   </label>
                 </div>
 
-                {/* Botoes de Ação */}
-                <div className="pt-4 border-t border-slate-100 flex justify-end gap-2.5">
+                <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-colors cursor-pointer"
+                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold rounded-xl transition-colors shadow-xs cursor-pointer"
                   >
-                    Salvar Produto
+                    {editingId ? 'Salvar Alterações' : 'Cadastrar Produto'}
                   </button>
                 </div>
               </form>
