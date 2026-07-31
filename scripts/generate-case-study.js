@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 async function generateCaseStudy() {
-  console.log('🚀 Iniciando geração do PDF e Imagens de Apresentação...');
+  console.log('Iniciando geraçao do PDF e Imagens de Apresentaçao...');
 
   const screenshotsDir = path.join(__dirname, '..', 'docs', 'screenshots');
   if (!fs.existsSync(screenshotsDir)) {
@@ -15,7 +15,7 @@ async function generateCaseStudy() {
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Pet Costelinha - Case Study & Apresentação do Projeto</title>
+  <title>Pet Costelinha - Case Study & Apresentaçao do Projeto</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,7 +80,7 @@ async function generateCaseStudy() {
         </div>
       </div>
       <div class="px-4 py-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-300 text-xs font-mono">
-        🌐 Em Produção
+        Em Produçao na Vercel
       </div>
     </div>
 
@@ -88,7 +88,7 @@ async function generateCaseStudy() {
     <div class="space-y-6 z-10 my-auto">
       <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-mono font-semibold">
         <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
-        <span>Plataforma E-Commerce & Sistema de Gestão</span>
+        <span>Plataforma E-Commerce & Sistema de Gestao</span>
       </div>
 
       <h2 class="text-5xl font-black font-display tracking-tight text-white leading-tight">
@@ -97,7 +97,7 @@ async function generateCaseStudy() {
       </h2>
 
       <p class="text-slate-300 text-base max-w-3xl leading-relaxed">
-        Solução Web completa desenvolvida sob medida para a loja comercial <strong class="text-amber-400">Pet Costelinha</strong>. Oferece uma experiência de compra online rápida e moderna para os clientes e um painel de gestão corporativo para controle de produtos, estoque e pedidos.
+        Soluçao Web completa desenvolvida sob medida para a loja comercial <strong class="text-amber-400">Pet Costelinha</strong>. Oferece uma experiência de compra online rápida e moderna para os clientes e um painel de gestao corporativo para controle de produtos, estoque e pedidos.
       </p>
 
       <!-- Tech Stack Badges -->
@@ -123,14 +123,14 @@ async function generateCaseStudy() {
     <!-- Footer -->
     <div class="flex items-center justify-between z-10 border-t border-slate-800/80 pt-4 text-xs text-slate-400">
       <div>Cliente: <span class="text-white font-semibold">Pet Costelinha</span></div>
-      <div>Site Oficial: <span class="text-orange-400 font-mono">https://pet-costelinha.vercel.app</span></div>
+      <div>Site Oficial: <span class="text-orange-400 font-mono">https://petcostelinha.vercel.app</span></div>
     </div>
   </div>
 
   <!-- SLIDE 2: O PROJETO & OBJETIVO -->
   <div id="slide-2" class="slide-page p-12 flex flex-col justify-between relative bg-slate-950">
     <div class="border-b border-slate-800 pb-4">
-      <span class="text-xs font-mono text-orange-400 uppercase font-semibold">01 / VISÃO GERAL DO PROJETO</span>
+      <span class="text-xs font-mono text-orange-400 uppercase font-semibold">01 / VISAO GERAL DO PROJETO</span>
       <h2 class="text-3xl font-bold font-display text-white mt-1">Objetivo do Desenvolvimento</h2>
     </div>
 
@@ -142,11 +142,11 @@ async function generateCaseStudy() {
         </div>
         <h3 class="text-lg font-bold text-white font-display">Necessidade da Loja</h3>
         <p class="text-xs text-slate-300 leading-relaxed">
-          A loja física precisava de uma presença digital moderna para apresentar seu catálogo completo de produtos (rações, medicamentos veterinários, produtos de higiene e acessórios), permitindo vendas online com recebimento instantâneo e gestão organizada dos pedidos.
+          A loja física precisava de uma presença digital moderna para apresentar seu catálogo completo de produtos (raçoes, medicamentos veterinários, produtos de higiene e acessórios), permitindo vendas online com recebimento instantâneo e gestao organizada dos pedidos.
         </p>
         <ul class="text-xs text-slate-300 space-y-2 pt-2 border-t border-slate-800">
-          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-amber-400"></i> Apresentação profissional da marca</li>
-          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-amber-400"></i> Automatização do processo de vendas</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-amber-400"></i> Apresentaçao profissional da marca</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-amber-400"></i> Automatizaçao do processo de vendas</li>
           <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-amber-400"></i> Facilidade de compra para os clientes</li>
         </ul>
       </div>
@@ -180,7 +180,7 @@ async function generateCaseStudy() {
       </div>
       <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
         <div class="text-xl font-bold text-blue-400 font-mono">SaaS</div>
-        <div class="text-[10px] text-slate-400 uppercase font-medium">Painel de Gestão</div>
+        <div class="text-[10px] text-slate-400 uppercase font-medium">Painel de Gestao</div>
       </div>
       <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
         <div class="text-xl font-bold text-purple-400 font-mono">UI/UX</div>
@@ -204,7 +204,7 @@ async function generateCaseStudy() {
         </div>
         <h3 class="text-sm font-bold text-white font-display">Catálogo & Carrinho</h3>
         <p class="text-xs text-slate-300">
-          Visualização limpa de produtos, navegação por categorias (Cães, Gatos, Pássaros, Medicamentos), busca rápida e carrinho de compras lateral em tempo real.
+          Visualizaçao limpa de produtos, navegaçao por categorias (Cães, Gatos, Pássaros, Medicamentos), busca rápida e carrinho de compras lateral em tempo real.
         </p>
       </div>
 
@@ -215,7 +215,7 @@ async function generateCaseStudy() {
         </div>
         <h3 class="text-sm font-bold text-white font-display">Checkout Seguro</h3>
         <p class="text-xs text-slate-300">
-          Formulário intuitivo de finalização com validação de dados de cadastro (CPF, telefone, CEP) garantindo a integridade dos dados para entrega.
+          Formulário intuitivo de finalizaçao com validaçao de dados de cadastro (CPF, telefone e endereço de entrega).
         </p>
       </div>
 
@@ -226,7 +226,7 @@ async function generateCaseStudy() {
         </div>
         <h3 class="text-sm font-bold text-white font-display">Pagamento PIX Real</h3>
         <p class="text-xs text-slate-300">
-          Integração com Mercado Pago para geração instantânea do código PIX EMV Copia e Cola e QR Code dinâmico para facilitar o pagamento pelo cliente.
+          Integraçao com Mercado Pago para geraçao instantânea do código PIX EMV Copia e Cola e QR Code dinâmico para facilitar o pagamento pelo cliente.
         </p>
       </div>
     </div>
@@ -278,7 +278,7 @@ async function generateCaseStudy() {
         </div>
         <h3 class="text-base font-bold text-white font-display">Estoque & Pedidos</h3>
         <p class="text-xs text-slate-300 leading-relaxed">
-          Módulo para cadastro e atualização de produtos, alertas de estoque baixo e acompanhamento do status de cada pedido do cliente.
+          Módulo para cadastro e atualizaçao de produtos, alertas de estoque baixo e acompanhamento do status de cada pedido do cliente.
         </p>
       </div>
     </div>
@@ -286,7 +286,7 @@ async function generateCaseStudy() {
     <div class="glass-card p-4 rounded-xl flex items-center justify-between text-xs text-slate-300">
       <div class="flex items-center gap-2">
         <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-        <span>Sistema com controle seguro de acessos e autenticação corporativa.</span>
+        <span>Sistema com controle seguro de acessos e autenticaçao corporativa.</span>
       </div>
       <div class="text-orange-400 font-mono">Pet Costelinha Admin</div>
     </div>
@@ -295,8 +295,8 @@ async function generateCaseStudy() {
   <!-- SLIDE 5: SITE EM PRODUÇÃO -->
   <div id="slide-5" class="slide-page p-12 flex flex-col justify-between relative bg-slate-950">
     <div class="border-b border-slate-800 pb-4">
-      <span class="text-xs font-mono text-orange-400 uppercase font-semibold">04 / PUBLICAÇÃO & PROJETO ENTREGUE</span>
-      <h2 class="text-3xl font-bold font-display text-white mt-1">Site Oficial em Produção</h2>
+      <span class="text-xs font-mono text-orange-400 uppercase font-semibold">04 / PUBLICAÇAO & PROJETO ENTREGUE</span>
+      <h2 class="text-3xl font-bold font-display text-white mt-1">Site Oficial em Produçao</h2>
     </div>
 
     <div class="my-auto space-y-6">
@@ -306,11 +306,11 @@ async function generateCaseStudy() {
         </div>
         <h3 class="text-2xl font-bold text-white font-display">Acesse o Site Online</h3>
         <p class="text-slate-300 text-sm">
-          O projeto foi implantado e está rodando em produção para a loja Pet Costelinha:
+          O projeto foi implantado e está rodando em produçao para a loja Pet Costelinha:
         </p>
 
         <div class="p-4 rounded-2xl bg-slate-900 border border-slate-700 inline-block text-base font-mono text-amber-400 font-bold">
-          https://pet-costelinha.vercel.app
+          https://petcostelinha.vercel.app
         </div>
       </div>
     </div>
@@ -319,7 +319,7 @@ async function generateCaseStudy() {
     <div class="flex items-center justify-between border-t border-slate-800 pt-4 text-xs text-slate-400">
       <div>© 2026 Pet Costelinha. Desenvolvido como projeto comercial.</div>
       <div class="text-emerald-400 font-mono font-semibold flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Projeto Concluído & Entregue 🚀
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Projeto Concluído & Entregue
       </div>
     </div>
   </div>
@@ -365,7 +365,7 @@ async function generateCaseStudy() {
     if (element) {
       const imgPath = path.join(screenshotsDir, fileName);
       await element.screenshot({ path: imgPath });
-      console.log(`📸 Imagem gerada: docs/screenshots/${fileName}`);
+      console.log(`Imagem gerada: docs/screenshots/${fileName}`);
     }
   }
 
@@ -379,12 +379,12 @@ async function generateCaseStudy() {
     margin: { top: 0, right: 0, bottom: 0, left: 0 }
   });
 
-  console.log(`📄 PDF gerado com sucesso: Pet_Costelinha_Documentacao_Case_Study.pdf`);
+  console.log(`PDF gerado com sucesso: Pet_Costelinha_Documentacao_Case_Study.pdf`);
 
   await browser.close();
 }
 
 generateCaseStudy().catch(err => {
-  console.error('❌ Erro na geração do Case Study:', err);
+  console.error('Erro na geraçao do Case Study:', err);
   process.exit(1);
 });

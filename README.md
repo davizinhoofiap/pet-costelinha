@@ -1,4 +1,4 @@
-# 🐾 Pet Costelinha - E-Commerce & Sistema de Gestão Comercial
+# Pet Costelinha - E-Commerce & Sistema de Gestao Comercial
 
 ![Vercel Production](https://img.shields.io/badge/Vercel-Online-000000?style=for-the-badge&logo=vercel)
 ![Next.js 14](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js)
@@ -10,83 +10,83 @@
 ![UI/UX Pro Max](https://img.shields.io/badge/Design-UI%2FUX_Pro_Max-F59E0B?style=for-the-badge)
 
 > **Projeto Comercial Desenvolvido para Cliente**  
-> Plataforma Web Full-Stack para a marca comercial **Pet Costelinha**, integrando uma **Storefront Virtual e-commerce** para clientes com catálogo completo e pagamento PIX automatizado a um **Painel de Gestão Comercial** para controle de estoque e acompanhamento de vendas.
+> Plataforma Web Full-Stack para a marca comercial **Pet Costelinha**, integrando uma **Storefront Virtual e-commerce** para clientes com catálogo completo e pagamento PIX automatizado a um **Painel de Gestao Comercial** para controle de estoque e acompanhamento de vendas.
 
 ---
 
-## 🌐 Link do Site em Produção
+## Link do Site em Produçao
 
-O site está no ar e operando em produção:
+O site está no ar e operando em produçao:
 
-👉 **[https://pet-costelinha.vercel.app](https://pet-costelinha.vercel.app)**
+[https://petcostelinha.vercel.app](https://petcostelinha.vercel.app)
 
 ---
 
-## 📄 Apresentação em PDF (Case Study)
+## Apresentaçao em PDF (Case Study)
 
-Este projeto conta com um documento de apresentação em PDF criado com padrões visuais de **UI/UX Pro Max** para demonstrar o design, a arquitetura e todas as funcionalidades desenvolvidas no site.
+Este projeto conta com um documento de apresentaçao em PDF criado com padroes visuais de **UI/UX Pro Max** para demonstrar o design, a arquitetura e todas as funcionalidades desenvolvidas no site.
 
-👉 **[📄 Baixar Apresentação Completa em PDF (Pet_Costelinha_Documentacao_Case_Study.pdf)](./Pet_Costelinha_Documentacao_Case_Study.pdf)**
+[Baixar Apresentaçao Completa em PDF (Pet_Costelinha_Documentacao_Case_Study.pdf)](./Pet_Costelinha_Documentacao_Case_Study.pdf)
 
-### 🖼️ Preview das Páginas da Apresentação
+### Preview das Páginas da Apresentaçao
 
 <div align="center">
 
 #### 1. Capa do Projeto
 ![Capa do Projeto](./docs/screenshots/1_capa_case_study.png)
 
-#### 2. Visão Geral & Objetivo do Desenvolvimento
+#### 2. Visao Geral & Objetivo do Desenvolvimento
 ![Objetivo do Desenvolvimento](./docs/screenshots/2_objetivo_e_desafio.png)
 
 #### 3. E-Commerce, Catálogo & Checkout PIX
 ![Storefront e Checkout](./docs/screenshots/3_storefront_e_checkout.png)
 
-#### 4. Painel de Gestão da Loja
+#### 4. Painel de Gestao da Loja
 ![Painel de Gestao](./docs/screenshots/4_painel_admin_rbac.png)
 
-#### 5. Publicação & Site em Produção
-![Site em Producao](./docs/screenshots/5_acesso_online_vercel.png)
+#### 5. Publicaçao & Site em Produçao
+![Site em Produçao](./docs/screenshots/5_acesso_online_vercel.png)
 
 </div>
 
 ---
 
-## 🎯 Sobre o Projeto & O Que Foi Desenvolvido
+## Sobre o Projeto & O Que Foi Desenvolvido
 
-### 💡 Objetivo do Projeto
+### Objetivo do Projeto
 O projeto foi desenvolvido sob medida para a loja **Pet Costelinha** com o objetivo de criar uma presença digital profissional, permitindo que a empresa apresente seu catálogo de produtos online, receba pedidos com pagamento PIX automatizado e administre as vendas de forma organizada.
 
-### 🛍️ Recursos da Loja Virtual (E-Commerce)
-- **Catálogo de Produtos Reais**: Rações Magnus, Special Dog, medicamentos veterinários, produtos de higiene e acessórios com fotos e preços atualizados.
-- **Filtros por Categorias & Busca Instantânea**: Navegação rápida por espécies (*Cães, Gatos, Pássaros, Medicamentos*).
-- **Carrinho de Compras Deslizante**: Drawer lateral dinâmico para adição e revisão de itens.
-- **Checkout Seguro**: Validação de dados de cadastro (CPF, telefone e endereço de entrega).
-- **Pagamento PIX Automatizado**: Integração com Mercado Pago para geração instantânea de QR Code e código PIX EMV Copia e Cola.
+### Recursos da Loja Virtual (E-Commerce)
+- **Catálogo de Produtos Reais**: Raçoes Magnus, Special Dog, medicamentos veterinários, produtos de higiene e acessórios com fotos e preços atualizados.
+- **Filtros por Categorias & Busca Instantânea**: Navegaçao rápida por espécies (*Cães, Gatos, Pássaros, Medicamentos*).
+- **Carrinho de Compras Deslizante**: Drawer lateral dinâmico para adiçao e revisao de itens.
+- **Checkout Seguro**: Validaçao de dados de cadastro (CPF, telefone e endereço de entrega).
+- **Pagamento PIX Automatizado**: Integraçao com Mercado Pago para geraçao instantânea de QR Code e código PIX EMV Copia e Cola.
 
-### 💼 Recursos do Painel de Gestão Comercial
+### Recursos do Painel de Gestao Comercial
 - **Dashboard Financeiro**: Acompanhamento de vendas, faturamento e relatórios de pedidos.
-- **Controle de Estoque & Produtos**: Módulo para cadastro, edição de produtos e alertas automáticos de estoque baixo.
-- **Gestão de Pedidos**: Controle do fluxo de entregas e alteração de status dos pedidos dos clientes.
+- **Controle de Estoque & Produtos**: Módulo para cadastro, ediçao de produtos e alertas automáticos de estoque baixo.
+- **Gestao de Pedidos**: Controle do fluxo de entregas e alteraçao de status dos pedidos dos clientes.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **Hospedagem & Deploy**: [Vercel Production](https://vercel.com/)
 - **Framework Frontend & Backend**: [Next.js 14 (App Router)](https://nextjs.org/)
 - **Linguagem**: [TypeScript](https://www.typescriptlang.org/)
-- **Estilização**: [TailwindCSS](https://tailwindcss.com/) + [Lucide Icons](https://lucide.dev/)
+- **Estilizaçao**: [TailwindCSS](https://tailwindcss.com/) + [Lucide Icons](https://lucide.dev/)
 - **Banco de Dados & ORM**: [Prisma ORM](https://www.prisma.io/) com [MySQL](https://www.mysql.com/)
-- **Integração de Pagamento**: Mercado Pago Payment API (PIX)
-- **Autenticação**: JWT & Criptografia `bcryptjs`
+- **Integraçao de Pagamento**: Mercado Pago Payment API (PIX)
+- **Autenticaçao**: JWT & Criptografia `bcryptjs`
 - **Design System**: Diretrizes de UI/UX Pro Max (Amarelo Ouro `#F59E0B` & Grafite `#18181B`)
 
 ---
 
-## 👨‍💻 Autoria & Direitos
+## Autoria & Direitos
 
 Projeto comercial desenvolvido por Davi para a marca **Pet Costelinha**.
 
-- **Site Oficial**: [https://pet-costelinha.vercel.app](https://pet-costelinha.vercel.app)
+- **Site Oficial**: [https://petcostelinha.vercel.app](https://petcostelinha.vercel.app)
 - **Repositório GitHub**: [github.com/davizinhoofiap/pet-costelinha](https://github.com/davizinhoofiap/pet-costelinha)
 - Todos os direitos da marca e do projeto reservados à **Pet Costelinha**.
