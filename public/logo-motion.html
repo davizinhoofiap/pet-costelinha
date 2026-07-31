@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pet Costelinha - Logo Motion & Visual Brand Showcase</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800;900&family=Fira+Code:wght@600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- GSAP Core CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #090d16;
+      color: #ffffff;
+      overflow: hidden;
+    }
+    
+    .font-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .font-mono {
+      font-family: 'Fira Code', monospace;
+    }
+
+    .brand-glow {
+      box-shadow: 0 0 80px 20px rgba(245, 158, 11, 0.25), 0 0 160px 40px rgba(249, 115, 22, 0.15);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #fb923c 0%, #fef08a 40%, #f97316 70%, #fdba74 100%);
+      background-size: 200% auto;
+      color: transparent;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shine 4s linear infinite;
+    }
+
+    @keyframes shine {
+      to {
+        background-position: 200% center;
+      }
+    }
+
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex items-center justify-center relative selection:bg-orange-500 selection:text-white">
+
+  <!-- Background Particle Canvas -->
+  <canvas id="particle-canvas" class="absolute inset-0 z-0 pointer-events-none opacity-60"></canvas>
+
+  <!-- Glowing Orbs -->
+  <div class="absolute -top-40 -left-40 w-[500px] h-[500px] bg-orange-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+  <div class="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-amber-500/15 rounded-full blur-[120px] pointer-events-none"></div>
+
+  <!-- MAIN LOGO MOTION CONTAINER (16:9 Landscape Ratio) -->
+  <div id="motion-stage" class="relative z-10 w-full max-w-5xl aspect-video glass-card rounded-3xl p-12 flex flex-col justify-between overflow-hidden shadow-2xl brand-glow border border-orange-500/20">
+
+    <!-- Top Bar Badge -->
+    <div class="flex items-center justify-between z-10 border-b border-slate-800/80 pb-4">
+      <div id="badge-container" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-mono font-semibold tracking-wider uppercase">
+        <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+        <span>PROJECT SHOWCASE • PET COSTELINHA</span>
+      </div>
+      <div class="text-xs font-mono text-slate-400">
+        https://petcostelinha.vercel.app
+      </div>
+    </div>
+
+    <!-- Center Logo Animation Area -->
+    <div class="my-auto flex flex-col items-center justify-center text-center space-y-6 z-10">
+
+      <!-- Animated Icon Box -->
+      <div id="logo-icon-box" class="w-24 h-24 rounded-3xl bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-400 flex items-center justify-center text-white shadow-2xl shadow-orange-500/40 relative group cursor-pointer border border-amber-300/30">
+        <div class="absolute inset-0 rounded-3xl bg-orange-400 animate-ping opacity-25"></div>
+        <i data-lucide="dog" class="w-12 h-12 stroke-[2.2] relative z-10"></i>
+      </div>
+
+      <!-- Animated Brand Title -->
+      <div class="space-y-2">
+        <h1 id="brand-title" class="font-display font-black text-5xl sm:text-6xl tracking-tight leading-none">
+          <span class="gradient-text">Pet Costelinha</span>
+        </h1>
+        <p id="brand-subtitle" class="text-slate-300 text-base sm:text-lg max-w-xl font-medium tracking-wide">
+          E-Commerce & Sistema de Gestao Comercial
+        </p>
+      </div>
+
+      <!-- Animated Badges Row -->
+      <div id="tech-row" class="flex flex-wrap items-center justify-center gap-3 pt-2">
+        <span class="px-4 py-2 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs font-semibold text-slate-200 flex items-center gap-2 shadow-sm">
+          <i data-lucide="layers" class="w-4 h-4 text-orange-400"></i> Next.js 14
+        </span>
+        <span class="px-4 py-2 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs font-semibold text-slate-200 flex items-center gap-2 shadow-sm">
+          <i data-lucide="code-2" class="w-4 h-4 text-blue-400"></i> TypeScript
+        </span>
+        <span class="px-4 py-2 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs font-semibold text-slate-200 flex items-center gap-2 shadow-sm">
+          <i data-lucide="database" class="w-4 h-4 text-emerald-400"></i> Prisma + MySQL
+        </span>
+        <span class="px-4 py-2 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs font-semibold text-slate-200 flex items-center gap-2 shadow-sm">
+          <i data-lucide="qr-code" class="w-4 h-4 text-cyan-400"></i> PIX Mercado Pago
+        </span>
+      </div>
+
+    </div>
+
+    <!-- Bottom Action Bar -->
+    <div class="flex items-center justify-between z-10 border-t border-slate-800/80 pt-4 text-xs">
+      <div class="text-slate-400">
+        Desenvolvido para: <span class="text-white font-bold">Pet Costelinha</span>
+      </div>
+      <button onclick="playLogoAnimation()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-semibold flex items-center gap-2 transition-all cursor-pointer active:scale-95">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-orange-400"></i> Repetir Animaçao
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // GSAP Logo Motion Animation Sequence
+    function playLogoAnimation() {
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      tl.set('#logo-icon-box', { scale: 0, rotate: -45, opacity: 0 })
+        .set('#brand-title', { y: 30, opacity: 0 })
+        .set('#brand-subtitle', { y: 20, opacity: 0 })
+        .set('#tech-row', { y: 20, opacity: 0 })
+        .set('#badge-container', { opacity: 0, scale: 0.9 })
+
+        .to('#badge-container', { opacity: 1, scale: 1, duration: 0.6 })
+        .to('#logo-icon-box', { scale: 1, rotate: 0, opacity: 1, duration: 1, ease: 'back.out(1.7)' }, '-=0.3')
+        .to('#brand-title', { y: 0, opacity: 1, duration: 0.8 }, '-=0.5')
+        .to('#brand-subtitle', { y: 0, opacity: 1, duration: 0.6 }, '-=0.4')
+        .to('#tech-row', { y: 0, opacity: 1, duration: 0.6 }, '-=0.3');
+    }
+
+    // Run animation on load
+    window.addEventListener('load', playLogoAnimation);
+
+    // Canvas Background Floating Particles
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const particles = Array.from({ length: 45 }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      r: Math.random() * 2.5 + 1,
+      dx: (Math.random() - 0.5) * 0.4,
+      dy: (Math.random() - 0.5) * 0.4,
+      alpha: Math.random() * 0.5 + 0.2
+    }));
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(245, 158, 11, ${p.alpha})`;
+        ctx.fill();
+
+        p.x += p.dx;
+        p.y += p.dy;
+
+        if (p.x < 0 || p.x > width) p.dx *= -1;
+        if (p.y < 0 || p.y > height) p.dy *= -1;
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+  </script>
+</body>
+</html>

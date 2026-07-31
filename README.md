@@ -20,6 +20,8 @@ O site está no ar e operando em produçao:
 
 [https://petcostelinha.vercel.app](https://petcostelinha.vercel.app)
 
+- **Logo Motion & Brand Animation Interativo**: [https://petcostelinha.vercel.app/logo-motion.html](https://petcostelinha.vercel.app/logo-motion.html)
+
 ---
 
 ## Apresentaçao em PDF (Case Study)
