@@ -1,5 +1,6 @@
 # 🐾 Pet Costelinha - E-Commerce Full-Stack & Painel SaaS Multi-Usuário (RBAC)
 
+![Vercel Production](https://img.shields.io/badge/Vercel-Online-000000?style=for-the-badge&logo=vercel)
 ![Next.js 14](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?style=for-the-badge&logo=typescript)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38BDF8?style=for-the-badge&logo=tailwind-css)
@@ -10,6 +11,16 @@
 
 > **Projeto Comercial Desenvolvido para Cliente & Portfolio Showcase (GitHub / LinkedIn)**  
 > Plataforma Web Full-Stack para a loja física comercial **Pet Costelinha**, integrando uma **Storefront Virtual e-commerce** com catálogo em tempo real e checkout PIX automatizado a um **Painel Administrativo SaaS Corporativo** com Controle de Acesso Baseado em Cargos (RBAC) e relatórios financeiros de margem de lucro.
+
+---
+
+## 🌐 Acesse a Aplicação Online (Vercel Production)
+
+O sistema está publicado e operante na nuvem:
+
+- 🛍️ **Loja Virtual (Storefront)**: [https://pet-costelinha.vercel.app](https://pet-costelinha.vercel.app)
+- 🔐 **Painel Administrativo Login**: [https://pet-costelinha.vercel.app/admin/login](https://pet-costelinha.vercel.app/admin/login)
+- 🎨 **Preview Interativo UI/UX**: [https://pet-costelinha.vercel.app/preview.html](https://pet-costelinha.vercel.app/preview.html)
 
 ---
 
@@ -35,8 +46,8 @@ Este projeto acompanha uma documentação comercial e técnica no formato de **C
 #### 4. Painel Administrativo SaaS & Matriz de Permissões RBAC
 ![Painel Admin RBAC](./docs/screenshots/4_painel_admin_rbac.png)
 
-#### 5. Arquitetura Técnica & Guia de Inicialização
-![Arquitetura e Instalação](./docs/screenshots/5_arquitetura_e_instalacao.png)
+#### 5. Acesso Online em Produção na Vercel
+![Acesso Online Vercel](./docs/screenshots/5_acesso_online_vercel.png)
 
 </div>
 
@@ -54,7 +65,7 @@ A loja física **Pet Costelinha** (localizada no Jardim das Oliveiras - São Pau
 ### 🚀 A Solução Entregue
 O sistema foi desenvolvido em **Março de 2026** como uma solução full-stack sob medida para digitalizar e automatizar 100% das operações da loja:
 - **E-Commerce Responsivo**: Vitrine interativa com busca em tempo real, filtros por espécies/categorias e drawer de carrinho lateral.
-- **Checkout com Validador Real de CPF**: Algoritmo algorítmico que checa digitos verificadores do CPF em tempo real antes de liberar a compra.
+- **Checkout com Validador Real de CPF**: Algoritmo que checa dígitos verificadores do CPF em tempo real antes de liberar a compra.
 - **Pagamento Instantâneo via PIX (Mercado Pago API v1)**: Geração de QR Code e código PIX EMV Copia e Cola com escuta via Webhook.
 - **Painel SaaS Corporativo Multi-Usuário (RBAC)**: Autenticação JWT com permissões granulares (`ADMIN`, `GERENTE`, `ATENDENTE`, `CLIENTE`).
 - **Dashboard Financeiro Inteligente**: Métricas de receita bruta e cálculo em tempo real do **Lucro Bruto Estimado** `(Preço Venda - Preço Custo) * Qtd`.
@@ -81,7 +92,17 @@ O sistema foi desenvolvido em **Março de 2026** como uma solução full-stack s
 
 ---
 
-## 🔐 Matriz de Permissões RBAC (Níveis de Acesso)
+## 🔐 Matriz de Permissões RBAC & Credenciais de Teste
+
+No painel de login online ([https://pet-costelinha.vercel.app/admin/login](https://pet-costelinha.vercel.app/admin/login)), você pode utilizar as seguintes contas para testar a experiência de cada cargo:
+
+| Cargo | E-mail | Senha | Permissão Principal |
+| :--- | :--- | :--- | :--- |
+| **ADMIN** | `admin@petcostelinha.com.br` | `123456` | Acesso Total, Lucro Bruto, Equipe e Configurações |
+| **GERENTE** | `gerente@petcostelinha.com.br` | `123456` | Gestão de Estoque e Edição de Produtos |
+| **ATENDENTE** | `atendente@petcostelinha.com.br` | `123456` | Separação de Pedidos de Balcão e Status |
+
+### Tabela Detalhada de Acessos:
 
 | Módulo / Recurso | ADMIN | GERENTE | ATENDENTE | CLIENTE |
 | :--- | :---: | :---: | :---: | :---: |
@@ -97,6 +118,7 @@ O sistema foi desenvolvido em **Março de 2026** como uma solução full-stack s
 ## 🛠️ Tecnologias & Design System
 
 ### Stack Tecnológico
+- **Hospedagem & Deploy**: [Vercel Production](https://vercel.com/)
 - **Framework Frontend & Backend**: [Next.js 14 (App Router)](https://nextjs.org/)
 - **Linguagem**: [TypeScript 5](https://www.typescriptlang.org/)
 - **Estilização**: [TailwindCSS 3.4](https://tailwindcss.com/) + [Lucide Icons](https://lucide.dev/)
@@ -105,89 +127,6 @@ O sistema foi desenvolvido em **Março de 2026** como uma solução full-stack s
 - **Integração de Pagamento**: Mercado Pago Payment API v1 (PIX & Webhook)
 - **Envio de E-mails**: [Nodemailer](https://nodemailer.com/) (SMTP)
 - **Geração de PDF Case Study**: Puppeteer + HTML5/CSS3 Canvas
-
-### Diretrizes de UI/UX Pro Max Design System
-- **Paleta de Cores**:
-  - **Amarelo Ouro (`#F59E0B`)**: Elementos de marca, botões de ação e badges principais.
-  - **Preto Grafite (`#18181B` / `#090D16`)**: Fundos corporativos, topbars e contraste dark mode.
-  - **Azul Pet (`#0284C7`)**: Selos de qualidade e destaques de navegação.
-  - **Laranja Oferta (`#F97316`)**: Alertas de estoque baixo e badges de promoção.
-- **Tipografia**: *Plus Jakarta Sans* para títulos e cabeçalhos corporativos; *Inter* para corpo de texto e dados cadastrais; *Fira Code* para códigos de pedido e valores numéricos.
-
----
-
-## 🚀 Como Executar o Projeto Localmente
-
-### 1. Pré-requisitos
-- **Node.js**: v18.0.0 ou superior
-- **MySQL**: Servidor MySQL rodando na porta `3306` (ex: via XAMPP, WAMP ou MySQL Server local)
-
-### 2. Clonar o Repositório
-```bash
-git clone https://github.com/davizinhoofiap/pet-costelinha.git
-cd pet-costelinha
-```
-
-### 3. Instalar Dependências
-```bash
-npm install
-```
-
-### 4. Configurar Variáveis de Ambiente
-Crie um arquivo `.env` na raiz do projeto baseado no exemplo abaixo:
-
-```env
-# Conexão com o Banco de Dados MySQL
-DATABASE_URL="mysql://root:root@localhost:3306/petshop_db"
-
-# Chave de Criptografia JWT
-JWT_SECRET="pet_costelinha_jwt_secret_key_2026"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-
-# Credenciais Mercado Pago (Opcional para modo sandbox/teste)
-MERCADO_PAGO_ACCESS_TOKEN="APP_USR-seu-token-mercadopago-aqui"
-
-# Configuração SMTP E-mail (Opcional)
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=587
-SMTP_USER="seu-email@gmail.com"
-SMTP_PASS="sua-senha-de-app"
-```
-
-### 5. Executar Migrações e Populate (Seeding)
-Este comando criará a estrutura de tabelas no MySQL e inserirá os dados comerciais com produtos reais e usuários para teste:
-```bash
-npx prisma db push
-npm run db:seed
-```
-
-### 6. Gerar a Documentação PDF & Screenshots (Opcional)
-Para atualizar o documento PDF de Case Study e as imagens de apresentação:
-```bash
-npm run generate-pdf
-```
-
-### 7. Iniciar o Servidor de Desenvolvimento
-```bash
-npm run dev
-```
-
-Acesse a aplicação no seu navegador:
-- 🛍️ **Storefront Loja Virtual**: [http://localhost:3000](http://localhost:3000)
-- 🔐 **Painel Administrativo Login**: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
-- 🎨 **Preview Interativo UI/UX**: [http://localhost:3000/preview.html](http://localhost:3000/preview.html)
-
----
-
-## 🔑 Credenciais para Testes no Painel Admin (RBAC)
-
-No painel de login (`/admin/login`), você pode clicar nos botões de acesso rápido ou utilizar as credenciais:
-
-| Cargo | E-mail | Senha | Permissão Principal |
-| :--- | :--- | :--- | :--- |
-| **ADMIN** | `admin@petcostelinha.com.br` | `123456` | Acceso Total, Lucro Bruto e Equipe |
-| **GERENTE** | `gerente@petcostelinha.com.br` | `123456` | Gestão de Estoque e Produtos |
-| **ATENDENTE** | `atendente@petcostelinha.com.br` | `123456` | Separação e Status de Pedidos |
 
 ---
 
@@ -233,5 +172,6 @@ pet-costelinha/
 Projeto desenvolvido como **Case Study e Projeto Comercial para Cliente** por Davi.  
 Compartilhado para fins de portfólio no **GitHub** e **LinkedIn**.
 
+- **Site Oficial em Produção**: [https://pet-costelinha.vercel.app](https://pet-costelinha.vercel.app)
 - **Repositório GitHub**: [github.com/davizinhoofiap/pet-costelinha](https://github.com/davizinhoofiap/pet-costelinha)
 - **Licença**: Todos os direitos da marca reservados à **Pet Costelinha**.

@@ -80,7 +80,7 @@ async function generateCaseStudy() {
         </div>
       </div>
       <div class="px-4 py-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-300 text-xs font-mono">
-        📅 Lançamento: Março / 2026
+        🌐 Online na Vercel
       </div>
     </div>
 
@@ -118,7 +118,7 @@ async function generateCaseStudy() {
           <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i> Autenticação JWT + RBAC
         </span>
         <span class="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-semibold text-slate-200 flex items-center gap-2">
-          <i data-lucide="palette" class="w-4 h-4 text-pink-400"></i> UI/UX Pro Max Standards
+          <i data-lucide="globe" class="w-4 h-4 text-emerald-400"></i> Deploy Vercel Production
         </span>
       </div>
     </div>
@@ -126,7 +126,7 @@ async function generateCaseStudy() {
     <!-- Footer -->
     <div class="flex items-center justify-between z-10 border-t border-slate-800/80 pt-4 text-xs text-slate-400">
       <div>Desenvolvido para: <span class="text-white font-semibold">Pet Costelinha (São Paulo - SP)</span></div>
-      <div>GitHub Repo: <span class="text-orange-400 font-mono">davizinhoofiap/pet-costelinha</span></div>
+      <div>Link Vercel: <span class="text-orange-400 font-mono">https://pet-costelinha.vercel.app</span></div>
     </div>
   </div>
 
@@ -335,56 +335,75 @@ async function generateCaseStudy() {
     </div>
   </div>
 
-  <!-- SLIDE 5: COMO EXECUTAR & METADADOS DO PROJETO -->
+  <!-- SLIDE 5: ACESSO EM PRODUÇÃO & DEPLOY VERCEL -->
   <div id="slide-5" class="slide-page p-12 flex flex-col justify-between relative bg-slate-950">
     <div class="border-b border-slate-800 pb-4">
-      <span class="text-xs font-mono text-orange-400 uppercase font-semibold">04 / DEPLOY E GUIA DE INSTALAÇÃO</span>
-      <h2 class="text-3xl font-bold font-display text-white mt-1">Como Colocar o Projeto Para Rodar</h2>
+      <span class="text-xs font-mono text-orange-400 uppercase font-semibold">04 / APLICAÇÃO ONLINE EM PRODUÇÃO</span>
+      <h2 class="text-3xl font-bold font-display text-white mt-1">Acesso Direto ao Site (Vercel)</h2>
     </div>
 
     <div class="grid grid-cols-2 gap-6 my-auto">
-      <!-- Steps -->
-      <div class="glass-card p-5 rounded-2xl space-y-3 font-mono text-xs">
-        <div class="text-amber-400 font-bold font-sans text-sm border-b border-slate-800 pb-2">Comandos de Inicialização Rápida:</div>
-        
-        <div>
-          <span class="text-slate-400"># 1. Clonar repositório</span><br/>
-          <span class="text-emerald-400">git clone https://github.com/davizinhoofiap/pet-costelinha.git</span>
+      <!-- Links de Producao -->
+      <div class="glass-card p-6 rounded-2xl space-y-4 border-amber-500/30">
+        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="globe" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white font-display">Links Oficiais em Produção</h3>
+            <p class="text-xs text-slate-400 font-mono">Hospedado na plataforma Vercel</p>
+          </div>
         </div>
 
-        <div>
-          <span class="text-slate-400"># 2. Instalar dependências</span><br/>
-          <span class="text-emerald-400">npm install</span>
-        </div>
+        <div class="space-y-3 text-xs font-mono">
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="text-slate-400 block text-[10px] uppercase font-sans font-semibold mb-1">🌐 Loja Virtual (Storefront):</span>
+            <span class="text-amber-400 font-bold">https://pet-costelinha.vercel.app</span>
+          </div>
 
-        <div>
-          <span class="text-slate-400"># 3. Configurar banco MySQL & Seed</span><br/>
-          <span class="text-emerald-400">npx prisma db push && npm run db:seed</span>
-        </div>
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="text-slate-400 block text-[10px] uppercase font-sans font-semibold mb-1">🔐 Painel Administrativo Login:</span>
+            <span class="text-orange-400 font-bold">https://pet-costelinha.vercel.app/admin/login</span>
+          </div>
 
-        <div>
-          <span class="text-slate-400"># 4. Iniciar ambiente dev</span><br/>
-          <span class="text-emerald-400">npm run dev</span>
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+            <span class="text-slate-400 block text-[10px] uppercase font-sans font-semibold mb-1">🎨 Showcase Design System:</span>
+            <span class="text-cyan-400 font-bold">https://pet-costelinha.vercel.app/preview.html</span>
+          </div>
         </div>
       </div>
 
       <!-- Test Accounts -->
-      <div class="glass-card p-5 rounded-2xl space-y-3 text-xs">
-        <div class="text-orange-400 font-bold font-sans text-sm border-b border-slate-800 pb-2">Credenciais de Teste para Recrutadores:</div>
-        <p class="text-slate-300">Acesse <code class="text-amber-400 bg-slate-900 px-1.5 py-0.5 rounded">http://localhost:3000/admin/login</code> com:</p>
+      <div class="glass-card p-6 rounded-2xl space-y-3 text-xs">
+        <div class="text-orange-400 font-bold font-sans text-sm border-b border-slate-800 pb-2 flex items-center justify-between">
+          <span>Credenciais para Testes de Avaliadores:</span>
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+        </div>
+        <p class="text-slate-300">Acesse o painel online e selecione os cargos para testar a experiência RBAC:</p>
 
         <div class="space-y-2 text-slate-300">
-          <div class="p-2 rounded bg-slate-900/80 border border-slate-800 flex justify-between">
-            <span><strong>ADMIN:</strong> admin@petcostelinha.com.br</span>
-            <span class="font-mono text-orange-400">123456</span>
+          <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex justify-between items-center">
+            <div>
+              <span class="font-bold text-white block">ADMINISTRADOR</span>
+              <span class="text-slate-400 text-[11px]">admin@petcostelinha.com.br</span>
+            </div>
+            <span class="font-mono text-amber-400 bg-slate-800 px-2 py-1 rounded">123456</span>
           </div>
-          <div class="p-2 rounded bg-slate-900/80 border border-slate-800 flex justify-between">
-            <span><strong>GERENTE:</strong> gerente@petcostelinha.com.br</span>
-            <span class="font-mono text-orange-400">123456</span>
+
+          <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex justify-between items-center">
+            <div>
+              <span class="font-bold text-white block">GERENTE DE ESTOQUE</span>
+              <span class="text-slate-400 text-[11px]">gerente@petcostelinha.com.br</span>
+            </div>
+            <span class="font-mono text-amber-400 bg-slate-800 px-2 py-1 rounded">123456</span>
           </div>
-          <div class="p-2 rounded bg-slate-900/80 border border-slate-800 flex justify-between">
-            <span><strong>ATENDENTE:</strong> atendente@petcostelinha.com.br</span>
-            <span class="font-mono text-orange-400">123456</span>
+
+          <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex justify-between items-center">
+            <div>
+              <span class="font-bold text-white block">ATENDENTE DE BALCÃO</span>
+              <span class="text-slate-400 text-[11px]">atendente@petcostelinha.com.br</span>
+            </div>
+            <span class="font-mono text-amber-400 bg-slate-800 px-2 py-1 rounded">123456</span>
           </div>
         </div>
       </div>
@@ -393,7 +412,9 @@ async function generateCaseStudy() {
     <!-- Final Badge -->
     <div class="flex items-center justify-between border-t border-slate-800 pt-4 text-xs text-slate-400">
       <div>© 2026 Pet Costelinha. Desenvolvido para exibição no GitHub e LinkedIn.</div>
-      <div class="text-emerald-400 font-mono font-semibold">Ready for Production Showcase 🚀</div>
+      <div class="text-emerald-400 font-mono font-semibold flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Production Online na Vercel 🚀
+      </div>
     </div>
   </div>
 
@@ -428,7 +449,7 @@ async function generateCaseStudy() {
     '2_objetivo_e_desafio.png',
     '3_storefront_e_checkout.png',
     '4_painel_admin_rbac.png',
-    '5_arquitetura_e_instalacao.png'
+    '5_acesso_online_vercel.png'
   ];
 
   for (let i = 0; i < slides.length; i++) {
@@ -440,6 +461,12 @@ async function generateCaseStudy() {
       await element.screenshot({ path: imgPath });
       console.log(`📸 Imagem gerada: docs/screenshots/${fileName}`);
     }
+  }
+
+  // Remove old screenshot file if it exists
+  const oldScreenshot = path.join(screenshotsDir, '5_arquitetura_e_instalacao.png');
+  if (fs.existsSync(oldScreenshot)) {
+    fs.unlinkSync(oldScreenshot);
   }
 
   // 2. Gerar PDF completo
